@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dgm-course-schema:v2",
+  "title": "Disc Golf Masters custom course",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "baseCourse", "holes"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,48}$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "baseCourse": { "enum": ["CanonPark", "MinokaSprings", "BaldurDgc", "MapleHill", "ChampionsLanding", "WinthropGold", "NokiaDiscGolfPark", "Terminalen"] },
+    "baseLayout": { "type": "string" },
+    "description": { "type": "string", "maxLength": 180 },
+    "courseCardImage": { "$ref": "#/$defs/pngName" },
+    "autoLayout": { "enum": ["", "long"] },
+    "waterLandingClearanceMeters": { "type": "number", "minimum": 0, "maximum": 25 },
+    "holes": {
+      "type": "array", "minItems": 1, "maxItems": 18,
+      "items": { "$ref": "#/$defs/hole" }
+    },
+    "mapScene": { "$ref": "#/$defs/mapScene" },
+    "mapWorldBounds": { "$ref": "#/$defs/mapWorldBounds" },
+    "mapLighting": { "$ref": "#/$defs/mapLighting" },
+    "editorMapWidthMeters": { "type": "number", "exclusiveMinimum": 0 },
+    "mapPreviewImage": { "$ref": "#/$defs/pngName" },
+    "cardSubtitle": { "type": "string" },
+    "cardTheme": { "type": "string" }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "pngName": { "type": "string", "pattern": "^[^/\\\\]+\\.png$" },
+    "vector3": {
+      "type": "object", "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "y": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "z": { "type": "number", "minimum": -10000, "maximum": 10000 }
+      },
+      "additionalProperties": true
+    },
+    "localOffset": {
+      "type": "object",
+      "properties": {
+        "right": { "type": "number", "minimum": -2000, "maximum": 2000 },
+        "up": { "type": "number", "minimum": -200, "maximum": 200 },
+        "forward": { "type": "number", "minimum": -2000, "maximum": 2000 }
+      },
+      "additionalProperties": true
+    },
+    "planPoint": {
+      "type": "object", "required": ["right", "forward"],
+      "properties": {
+        "right": { "type": "number", "minimum": -1000, "maximum": 1000 },
+        "forward": { "type": "number", "minimum": -1000, "maximum": 1000 }
+      },
+      "additionalProperties": true
+    },
+    "obZone": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "points": { "type": "array", "minItems": 3, "maxItems": 64, "items": { "$ref": "#/$defs/planPoint" } }
+      },
+      "required": ["points"],
+      "additionalProperties": true
+    },
+    "hole": {
+      "type": "object",
+      "properties": {
+        "par": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "lengthMeters": { "type": "integer", "minimum": 1, "maximum": 2000 },
+        "shotLimit": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "pinVariant": { "type": "string" },
+        "teeVariant": { "type": "string" },
+        "teeOffset": { "$ref": "#/$defs/localOffset" },
+        "basketOffset": { "$ref": "#/$defs/localOffset" },
+        "teeYawDegrees": { "type": "number" },
+        "basketYawDegrees": { "type": "number" },
+        "teeEnabled": { "type": "boolean" },
+        "basketEnabled": { "type": "boolean" },
+        "obZones": { "type": "array", "maxItems": 12, "items": { "$ref": "#/$defs/obZone" } },
+        "cardImage": { "$ref": "#/$defs/pngName" },
+        "mapTeePosition": { "$ref": "#/$defs/vector3" },
+        "mapBasketPosition": { "$ref": "#/$defs/vector3" }
+      },
+      "additionalProperties": true
+    },
+    "mapScene": {
+      "type": "object", "required": ["scenePath", "bundlePath"],
+      "properties": {
+        "scenePath": { "type": "string", "pattern": "^[^/].*\\.unity$" },
+        "bundlePath": { "type": "string", "pattern": "^(?!/)(?!.*(^|/)\\.\\.?(/|$)).+$" },
+        "dependencyBundlePaths": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^(?!/)(?!.*(^|/)\\.\\.?(/|$)).+$" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "mapWorldBounds": {
+      "type": "object",
+      "properties": {
+        "minX": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "maxX": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "minZ": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "maxZ": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "groundY": { "type": "number", "minimum": -10000, "maximum": 10000 }
+      },
+      "additionalProperties": true
+    },
+    "mapLighting": {
+      "type": "object",
+      "properties": {
+        "preserveLightmaps": { "type": "boolean" },
+        "supplementLighting": { "type": "boolean" },
+        "forceFallbackMaterials": { "type": "boolean" },
+        "forceUnlitMaterials": { "type": "boolean" },
+        "ignoreSourceTint": { "type": "boolean" },
+        "repairTerrainMaterials": { "type": "boolean" },
+        "repairTerrainTextureDetails": { "type": "boolean" },
+        "useBaseSkybox": { "type": "boolean" },
+        "disableCameraOcclusionCulling": { "type": "boolean" },
+        "hideHoloWalls": { "type": "boolean" },
+        "forceTreeMeshLods": { "type": "boolean" },
+        "exportFoliageDiagnostics": { "type": "boolean" },
+        "useLitFoliageMaterials": { "type": "boolean" },
+        "realtimeMapShadows": { "type": "boolean" },
+        "hideImportedParticles": { "type": "boolean" },
+        "generateTreeCanopyColliders": { "type": "boolean" },
+        "experimentalFoliageInteractions": { "type": "boolean" },
+        "useGameFoliageShader": { "type": "boolean" },
+        "preferBaseCourseSun": { "type": "boolean" },
+        "localLightIntensityMultiplier": { "type": "number", "minimum": 0, "maximum": 5 },
+        "albedoBrightness": { "type": "number", "minimum": 0.5, "maximum": 3 },
+        "ambientIntensity": { "type": "number", "minimum": 0, "maximum": 2.5 },
+        "keyLightIntensity": { "type": "number", "minimum": 0, "maximum": 5 },
+        "keyLightYawDegrees": { "type": "number" },
+        "keyLightPitchDegrees": { "type": "number", "minimum": -89, "maximum": 89 },
+        "ambientColor": { "$ref": "#/$defs/color" },
+        "keyLightColor": { "$ref": "#/$defs/color" }
+      },
+      "additionalProperties": true
+    },
+    "color": {
+      "type": "object", "required": ["r", "g", "b"],
+      "properties": {
+        "r": { "type": "number", "minimum": 0, "maximum": 1 },
+        "g": { "type": "number", "minimum": 0, "maximum": 1 },
+        "b": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

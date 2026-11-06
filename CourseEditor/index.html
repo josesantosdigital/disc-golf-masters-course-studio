@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101410">
+  <title>Disc Golf Masters · Course Studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="catalog.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#overview" aria-label="Course Studio overview">
+        <span class="brand-mark"><span></span></span>
+        <span class="brand-copy"><strong>COURSE STUDIO</strong><small>DISC GOLF MASTERS</small></span>
+      </a>
+      <div class="topbar-center">
+        <span class="live-dot"></span><span id="save-state">Local workspace</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="button button-quiet" id="open-course">Installed maps</button>
+        <button class="button button-outline" id="new-course">Original courses</button>
+        <button class="button button-primary" id="export-course"><span class="button-icon">↑</span> Export to game</button>
+        <input id="course-file" type="file" accept="application/json,.json" hidden>
+      </div>
+    </header>
+
+    <main id="overview-view" class="overview-view">
+      <section class="overview-hero">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-line"></span> COURSE LIBRARY <span id="hero-course-count" class="eyebrow-count">03 ORIGINALS</span></div>
+          <h1>Design your next<br><span>great round.</span></h1>
+          <p>Start with a course from the game. Move tees and baskets, set shot limits, draw OB and build a card for every hole.</p>
+          <div class="hero-note"><span class="note-icon">⌖</span><span>Map previews are exported from the game when the offline course selector loads.</span></div>
+          <details class="studio-help">
+            <summary>Quick start</summary>
+            <ol>
+              <li>Pick an original course or switch to <b>Installed maps</b> to edit Hood Corner, Tree Land, and other packages already in the plugin folder.</li>
+              <li>Choose <b>Edit course</b> to change a layout or <b>New layout</b> to start a variation on that map.</li>
+              <li>Drag tee and basket markers, then use the right panel for par, shot limit, OB, and cards.</li>
+              <li>Click <b>Export to game</b>, then restart the game to load the saved course.</li>
+            </ol>
+          </details>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-sun"></div><div class="art-contour contour-a"></div><div class="art-contour contour-b"></div><div class="art-contour contour-c"></div>
+          <div class="art-fairway"></div><div class="art-tee"><i></i></div><div class="art-basket"><i></i></div>
+          <div class="art-stamp">PAR<br><b>3</b></div><div class="art-label label-tee">TEE 01</div><div class="art-label label-pin">PIN B</div>
+          <div class="art-north">N <span>↑</span></div>
+        </div>
+      </section>
+
+      <section class="library-header">
+        <div class="library-heading"><div class="section-kicker">MAP EXPLORER</div><h2 id="library-title">Choose a course map</h2>
+          <div class="library-source-tabs" role="tablist" aria-label="Map source">
+            <button id="library-original" class="library-source-tab active" role="tab" aria-selected="true">Original courses <b id="course-count">03</b></button>
+            <button id="library-installed" class="library-source-tab" role="tab" aria-selected="false">Installed maps <b id="installed-map-count">…</b></button>
+          </div>
+        </div>
+        <div class="library-tools"><button class="button button-outline" id="new-imported-map">Add map package…</button><button class="button button-quiet" id="open-course-from-disk">Open JSON…</button><button class="button button-quiet" id="refresh-installed-maps" hidden>↻ Scan maps</button><label class="map-filter" id="map-filter-control" hidden><span>SHOW</span><select id="map-status-filter" aria-label="Filter installed maps"><option value="all">All maps</option><option value="ready">Ready</option><option value="setup">Needs setup</option><option value="missing">Missing files</option></select></label><label class="search-box"><span>⌕</span><input id="course-search" placeholder="Find a course" autocomplete="off"></label><div class="view-toggle" aria-label="Course view"><button class="view-button active" data-view="grid" aria-label="Grid view">▦</button><button class="view-button" data-view="list" aria-label="List view">☷</button></div></div>
+      </section>
+      <div id="installed-map-result-count" class="library-result-count" hidden aria-live="polite"></div>
+      <section id="course-grid" class="course-grid" aria-live="polite"></section>
+      <footer class="overview-footer"><span>COURSE STUDIO <i>·</i> OFFLINE COURSE BUILDER</span><span>Zoom <kbd>scroll</kbd> <i>·</i> Pan <kbd>space + drag</kbd> <i>·</i> Move a marker <kbd>drag</kbd></span></footer>
+    </main>
+
+    <main id="editor-view" class="editor-view" hidden>
+      <div class="editor-heading">
+        <div class="breadcrumbs"><button id="back-overview">← Course library</button><span>/</span><span id="current-base-name">Canon Park</span><span>/</span><strong id="current-hole-crumb">Hole 01</strong></div>
+        <div class="heading-main">
+          <div class="course-title-block"><label class="visually-hidden" for="course-name">Custom course name</label><input id="course-name" class="course-title" value="Untitled Course" maxlength="64"><span id="course-description-short" class="course-subtitle">Custom layout · Offline</span></div>
+          <div class="heading-stats"><span><b id="total-holes">18</b><small>HOLES</small></span><span><b id="total-par">54</b><small>PAR</small></span><span><b id="total-length">1,080</b><small>METERS</small></span></div>
+        </div>
+        <details id="course-options" class="course-options">
+          <summary><b>Course options</b><span>Course ID, description, and base scene</span><em>⌄</em></summary>
+          <div class="course-meta-row">
+          <label class="meta-field source-picker"><span>COURSE SOURCE</span><select id="course-source"><option value="original">Original course scene</option><option value="imported">Imported map scene</option></select></label>
+          <label class="meta-field"><span>COURSE ID</span><input id="course-id" value="new-course" maxlength="48"></label>
+          <label class="meta-field meta-description"><span>DESCRIPTION</span><input id="course-description" value="A custom offline course layout." maxlength="180"></label>
+          <label class="meta-field base-picker"><span>BASE COURSE</span><select id="base-course"></select></label>
+          <label class="meta-field layout-picker"><span>BASE LAYOUT</span><select id="base-layout"></select></label>
+          </div>
+        </details>
+        <div id="imported-map-panel" class="imported-map-panel" hidden>
+          <details id="map-setup-details" class="map-setup-details">
+            <summary><span><b>Map settings</b><small id="scene-bundle-status">No scene bundle selected</small></span><em>⌄</em></summary>
+            <p class="map-setup-help">Installed packages are detected automatically. Open this section only to change the bundle, world bounds, lighting, or preview image.</p>
+            <div class="imported-map-fields">
+            <label class="meta-field"><span>SCENE PATH INSIDE BUNDLE</span><input id="map-scene-path" placeholder="Assets/Maps/MyCourse.unity"></label>
+            <label class="meta-field"><span>BUNDLE PATH IN PLUGIN FOLDER</span><input id="map-bundle-path" placeholder="Maps/my-course/scene.bundle"></label>
+            <label class="meta-field dependency-field"><span>DEPENDENCY PATHS · COMMA SEPARATED</span><input id="map-dependency-paths" placeholder="Maps/my-course/dependencies/shared.bundle"></label>
+            <div class="import-buttons"><button class="inspector-button" id="choose-scene-bundle">Choose scene bundle</button><button class="inspector-button" id="choose-dependencies">Choose dependencies</button><button class="inspector-button" id="choose-map-image">Choose map preview</button></div>
+            </div>
+            <div class="world-bounds-grid">
+            <label class="meta-field"><span>WORLD MIN X</span><input id="world-min-x" type="number" step="1" value="-100"></label>
+            <label class="meta-field"><span>WORLD MAX X</span><input id="world-max-x" type="number" step="1" value="100"></label>
+            <label class="meta-field"><span>WORLD MIN Z</span><input id="world-min-z" type="number" step="1" value="-100"></label>
+            <label class="meta-field"><span>WORLD MAX Z</span><input id="world-max-z" type="number" step="1" value="100"></label>
+            <label class="meta-field"><span>DEFAULT GROUND Y</span><input id="world-ground-y" type="number" step="0.1" value="0"></label>
+            </div>
+            <details class="advanced-map-settings"><summary>Advanced lighting</summary>
+            <div class="world-bounds-grid map-lighting-grid">
+            <label class="meta-field"><span>ALBEDO BRIGHTNESS</span><input id="map-albedo-brightness" type="number" min="0.5" max="3" step="0.1" value="1.5"></label>
+            <label class="meta-field"><span>POINT/SPOT LIGHT LEVEL</span><input id="map-local-light-multiplier" type="number" min="0" max="5" step="0.1" value="1"></label>
+            <small class="import-lighting-note">Scales imported point and spot light intensity. Values below 1 dim local lights; 1 keeps the source intensity.</small>
+            <label class="meta-field"><span>AMBIENT COLOR</span><input id="map-ambient-color" type="color" value="#bfbfc7"></label>
+            <label class="meta-field"><span>AMBIENT LEVEL</span><input id="map-ambient-intensity" type="number" min="0" max="2.5" step="0.05" value="1"></label>
+            <label class="meta-field"><span>KEY LIGHT COLOR</span><input id="map-key-color" type="color" value="#ffffff"></label>
+            <label class="meta-field"><span>KEY LIGHT POWER</span><input id="map-key-intensity" type="number" min="0" max="5" step="0.1" value="2.5"></label>
+            <label class="meta-field"><span>LIGHT YAW</span><input id="map-key-yaw" type="number" step="1" value="-30"></label>
+            <label class="meta-field"><span>LIGHT PITCH</span><input id="map-key-pitch" type="number" min="-89" max="89" step="1" value="50"></label>
+            </div>
+            <label class="map-option"><input id="map-force-unlit" type="checkbox" checked><span>Use brighter albedo rendering for maps with missing or incompatible lighting</span></label>
+            <small class="import-lighting-note">Turn this off to use the imported map's materials with the ambient and key light settings.</small>
+            <label class="map-option"><input id="map-realtime-shadows" type="checkbox"><span>Try realtime shadows · experimental</span></label>
+            <small class="import-lighting-note">Uses compatible imported lights or a fallback light. The game’s render-pipeline settings may prevent visible shadows.</small>
+            <label class="map-option"><input id="map-hide-particles" type="checkbox"><span>Hide imported particle effects</span></label>
+            <small class="import-lighting-note">Use when a map’s particle shader looks broken. This hides those effects completely.</small>
+            <label class="map-option"><input id="map-tree-canopy-collisions" type="checkbox" disabled><span>Tree canopy collisions · temporarily unavailable</span></label>
+            <small class="import-lighting-note">The legacy native canopy method is disabled while its integration is repaired.</small>
+            <label class="map-option"><input id="map-foliage-interactions" type="checkbox"><span>Approximate foliage interactions · experimental</span></label>
+            <small class="import-lighting-note">Uses approximate volumes around compatible terrain foliage. Hits and sounds may be inaccurate; animation is unchanged.</small>
+            <label class="map-option"><input id="map-game-foliage" type="checkbox"><span>Try the game’s animated foliage shader · experimental</span></label>
+            <small class="import-lighting-note">May restore wind and impact movement on compatible imported tree leaves; appearance depends on the source mesh.</small>
+            <label class="map-option"><input id="map-base-sun" type="checkbox"><span>Use the base course’s sun</span></label>
+            <small class="import-lighting-note">Uses the game’s sun instead of imported directional lights when one is available.</small>
+            <details class="map-repair-settings"><summary>Terrain &amp; vegetation</summary>
+            <label class="map-option"><input id="map-lit-foliage" type="checkbox"><span>Use the game's lit cutout shader for foliage</span></label>
+            <small class="import-lighting-note">Tries DGM's URP Lit alpha-test variant on foliage materials. Transparency and shading depend on the shader variant available in game.</small>
+            <label class="map-option"><input id="map-preserve-lightmaps" type="checkbox"><span>Keep imported baked lightmaps</span></label>
+            <label class="map-option"><input id="map-disable-occlusion" type="checkbox"><span>Disable camera occlusion culling for maps with missing or flickering geometry</span></label>
+            <small class="import-lighting-note">Use only when the map’s baked lighting has been checked in game. Incomplete lightmaps can make a scene look wrong.</small>
+            <label class="map-option"><input id="map-repair-terrain-materials" type="checkbox"><span>Repair imported terrain material</span></label>
+            <small class="import-lighting-note">Replaces incompatible terrain shaders with the game’s URP terrain shader; this can change the surface appearance.</small>
+            <label class="map-option"><input id="map-repair-terrain-details" type="checkbox"><span>Repair textured terrain foliage</span></label>
+            <small class="import-lighting-note">Rebuilds texture based grass and foliage details as cutout meshes. Use when terrain details render as solid cards.</small>
+            <label class="map-option"><input id="map-force-tree-mesh-lods" type="checkbox"><span>Keep tree meshes visible at distance</span></label>
+            <small class="import-lighting-note">Reduces distant billboard impostors on compatible terrains, with a possible performance cost.</small>
+            </details>
+            </details>
+          <input id="scene-bundle-file" type="file" accept=".bundle,.unity3d,.assetbundle" hidden>
+          <input id="dependency-files" type="file" accept=".bundle,.unity3d,.assetbundle" multiple hidden>
+          <input id="map-image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+          </details>
+        </div>
+      </div>
+
+      <div class="editor-grid">
+        <aside class="holes-panel panel">
+          <div class="panel-heading"><div><span class="section-kicker">LAYOUT</span><h3>Holes</h3></div><button id="add-hole" class="icon-button" title="Add hole" aria-label="Add hole">＋</button></div>
+          <div id="hole-list" class="hole-list"></div>
+          <div class="hole-list-footer"><button id="remove-hole" class="text-button">− Remove hole</button><span id="hole-count-label">18 / 18</span></div>
+          <div class="hole-summary"><span class="summary-icon">◎</span><div><b id="summary-course-name">Canon Park</b><small id="summary-layout-name">Original course terrain</small></div><button id="view-original" title="View original course map" aria-label="View original course map">↗</button></div>
+        </aside>
+
+        <section class="map-panel panel">
+          <div class="map-toolbar">
+            <div class="map-tabs"><button class="map-tab active" data-map-mode="design">HOLE DESIGN</button><button class="map-tab" data-map-mode="overview">COURSE OVERVIEW</button></div>
+            <div class="map-actions">
+              <label class="scale-control"><span>MAP WIDTH</span><input id="map-width" type="number" min="50" max="5000" step="10" value="400"><em>m</em></label>
+              <button class="tool-button map-preview-button" id="import-map-image" title="Use a screenshot or top-down image as this map's background">▧ <span>Map image</span></button>
+              <button class="tool-button" id="calibrate-tee" title="Set the base tee location on the map">⌖ <span>Base tee</span></button>
+              <button class="tool-button" id="calibrate-basket" title="Set the base basket location on the map">◎ <span>Base basket</span></button>
+              <button class="tool-button" id="draw-ob" title="Draw an out-of-bounds polygon">⬡ <span>Draw OB</span></button>
+              <button class="tool-button finish-ob" id="finish-ob" hidden>Finish zone</button>
+            </div>
+          </div>
+          <div class="map-stage" id="map-stage">
+            <canvas id="course-map" aria-label="Zoomable course map. Drag a tee or basket to set its position."></canvas>
+            <div class="map-loading" id="map-loading" hidden><span class="loader"></span><b>Preparing course map</b></div>
+            <div class="map-empty" id="map-empty" hidden><span>⌖</span><b>Course overview unavailable</b><small id="map-empty-description">Open the offline course selector once to export the original course maps.</small></div>
+            <div class="map-bottom-left"><span class="map-north">N <b>↑</b></span><span class="map-coords" id="cursor-coordinates">0.0, 0.0 m</span></div>
+            <div class="zoom-control"><button id="zoom-out" aria-label="Zoom out">−</button><span id="zoom-level">100%</span><button id="zoom-in" aria-label="Zoom in">＋</button><span class="zoom-divider"></span><button id="zoom-fit" aria-label="Fit map">⌗</button></div>
+            <div id="map-tip" class="map-tip">Set the base tee and basket locations to align this hole with its course map.</div>
+            <div id="ob-instruction" class="ob-instruction" hidden>Click points to draw an OB boundary <button id="cancel-ob">Cancel</button></div>
+          </div>
+          <div class="map-legend"><span><i class="legend-tee"></i> TEE <b id="legend-tee">A</b></span><span><i class="legend-basket"></i> BASKET <b id="legend-basket">A</b></span><span><i class="legend-ob"></i> OUT OF BOUNDS</span><span class="legend-hint">Drag markers to move · scroll to zoom · space + drag to pan</span></div>
+        </section>
+
+        <aside class="inspector panel">
+          <div class="inspector-top"><div class="inspector-tabs"><button class="inspector-tab active" data-inspector="hole">HOLE</button><button class="inspector-tab" data-inspector="tee">TEE</button><button class="inspector-tab" data-inspector="basket">BASKET</button><button class="inspector-tab" data-inspector="ob">OB</button><button class="inspector-tab" data-inspector="card">CARD</button></div></div>
+          <div class="inspector-content" id="inspector-content"></div>
+        </aside>
+      </div>
+      <footer class="editor-footer"><span><span class="live-dot"></span><span id="editor-save-state">Changes save in this browser</span></span><span class="footer-shortcuts"><kbd>Ctrl</kbd> + <kbd>S</kbd> Export <i>·</i> <kbd>Del</kbd> Remove selected item</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app-core.js"></script>
+  <script src="app-library.js"></script>
+  <script src="app-inspector.js"></script>
+  <script src="app-map.js"></script>
+  <script src="app-files.js"></script>
+  <script src="app-settings.js"></script>
+  <script src="app-events.js"></script>
+  <script src="app-utils.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

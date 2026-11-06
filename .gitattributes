@@ -1,0 +1,22 @@
+# Keep project text files consistent across Windows and Unix checkouts.
+* text=auto eol=lf
+
+# Preserve binary assets byte-for-byte if they are added to the source tree.
+*.7z binary
+*.assetbundle binary
+*.bundle binary
+*.dll binary
+*.exe binary
+*.gif binary
+*.ico binary
+*.jpeg binary
+*.jpg binary
+*.mp3 binary
+*.ogg binary
+*.pdf binary
+*.png binary
+*.ttf binary
+*.unity3d binary
+*.wav binary
+*.webp binary
+*.zip binary

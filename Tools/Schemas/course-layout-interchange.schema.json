@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dgm-course-layout-interchange:v1",
+  "title": "Course layout interchange format",
+  "description": "A normalized input for converting exported or manually mapped layouts from other course games into DGM course JSON.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "baseCourse", "coordinateSpace", "holes"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "sourceGame": { "type": "string", "maxLength": 80 },
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,48}$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "baseCourse": { "enum": ["CanonPark", "MinokaSprings", "BaldurDgc", "MapleHill", "ChampionsLanding", "WinthropGold", "NokiaDiscGolfPark", "Terminalen"] },
+    "baseLayout": { "type": "string", "maxLength": 120 },
+    "description": { "type": "string", "maxLength": 160 },
+    "coordinateSpace": { "enum": ["courseOffsets", "unityWorld"] },
+    "mapScene": {
+      "type": "object",
+      "required": ["scenePath", "bundlePath"],
+      "properties": {
+        "scenePath": { "type": "string", "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.?([/\\\\]|$)).+\\.unity$" },
+        "bundlePath": { "type": "string", "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.?([/\\\\]|$)).+$" },
+        "dependencyBundlePaths": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.?([/\\\\]|$)).+$" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "mapWorldBounds": {
+      "type": "object",
+      "required": ["minX", "maxX", "minZ", "maxZ", "groundY"],
+      "properties": {
+        "minX": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "maxX": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "minZ": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "maxZ": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "groundY": { "type": "number", "minimum": -10000, "maximum": 10000 }
+      },
+      "additionalProperties": false
+    },
+    "mapLighting": {
+      "type": "object",
+      "properties": {
+        "preserveLightmaps": { "type": "boolean" },
+        "supplementLighting": { "type": "boolean" },
+        "forceFallbackMaterials": { "type": "boolean" },
+        "forceUnlitMaterials": { "type": "boolean" },
+        "ignoreSourceTint": { "type": "boolean" },
+        "repairTerrainMaterials": { "type": "boolean" },
+        "repairTerrainTextureDetails": { "type": "boolean" },
+        "useBaseSkybox": { "type": "boolean" },
+        "disableCameraOcclusionCulling": { "type": "boolean" },
+        "hideHoloWalls": { "type": "boolean" },
+        "forceTreeMeshLods": { "type": "boolean" },
+        "exportFoliageDiagnostics": { "type": "boolean" },
+        "useLitFoliageMaterials": { "type": "boolean" },
+        "realtimeMapShadows": { "type": "boolean" },
+        "hideImportedParticles": { "type": "boolean" },
+        "generateTreeCanopyColliders": { "type": "boolean" },
+        "experimentalFoliageInteractions": { "type": "boolean" },
+        "useGameFoliageShader": { "type": "boolean" },
+        "preferBaseCourseSun": { "type": "boolean" },
+        "albedoBrightness": { "type": "number", "minimum": 0.5, "maximum": 3 },
+        "ambientIntensity": { "type": "number", "minimum": 0, "maximum": 2.5 },
+        "keyLightIntensity": { "type": "number", "minimum": 0, "maximum": 5 },
+        "keyLightYawDegrees": { "type": "number", "minimum": -360000, "maximum": 360000 },
+        "keyLightPitchDegrees": { "type": "number", "minimum": -89, "maximum": 89 },
+        "ambientColor": { "$ref": "#/$defs/color" },
+        "keyLightColor": { "$ref": "#/$defs/color" }
+      },
+      "additionalProperties": false
+    },
+    "holes": { "type": "array", "minItems": 1, "maxItems": 18, "items": { "$ref": "#/$defs/hole" } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "coordinateSpace": { "const": "courseOffsets" } }, "required": ["coordinateSpace"] },
+      "then": {
+        "not": { "anyOf": [{ "required": ["mapScene"] }, { "required": ["mapWorldBounds"] }, { "required": ["mapLighting"] }] },
+        "properties": {
+          "holes": {
+            "items": {
+              "required": ["teeOffset", "basketOffset"],
+              "not": { "anyOf": [{ "required": ["teePosition"] }, { "required": ["basketPosition"] }] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "coordinateSpace": { "const": "unityWorld" } }, "required": ["coordinateSpace"] },
+      "then": {
+        "required": ["mapScene"],
+        "properties": {
+          "holes": {
+            "items": {
+              "required": ["teePosition", "basketPosition"],
+              "not": { "anyOf": [{ "required": ["teeOffset"] }, { "required": ["basketOffset"] }] }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "offset": {
+      "type": "object",
+      "required": ["right", "up", "forward"],
+      "properties": {
+        "right": { "type": "number", "minimum": -2000, "maximum": 2000 },
+        "up": { "type": "number", "minimum": -200, "maximum": 200 },
+        "forward": { "type": "number", "minimum": -2000, "maximum": 2000 }
+      },
+      "additionalProperties": false
+    },
+    "position": {
+      "type": "object",
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "y": { "type": "number", "minimum": -10000, "maximum": 10000 },
+        "z": { "type": "number", "minimum": -10000, "maximum": 10000 }
+      },
+      "additionalProperties": false
+    },
+    "point": {
+      "type": "object",
+      "required": ["right", "forward"],
+      "properties": {
+        "right": { "type": "number", "minimum": -1000, "maximum": 1000 },
+        "forward": { "type": "number", "minimum": -1000, "maximum": 1000 }
+      },
+      "additionalProperties": false
+    },
+    "color": {
+      "type": "object",
+      "required": ["r", "g", "b"],
+      "properties": {
+        "r": { "type": "number", "minimum": 0, "maximum": 1 },
+        "g": { "type": "number", "minimum": 0, "maximum": 1 },
+        "b": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "hole": {
+      "type": "object",
+      "properties": {
+        "par": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "lengthMeters": { "type": "integer", "minimum": 1, "maximum": 2000 },
+        "shotLimit": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "pinVariant": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "teeVariant": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "teeOffset": { "$ref": "#/$defs/offset" },
+        "basketOffset": { "$ref": "#/$defs/offset" },
+        "teePosition": { "$ref": "#/$defs/position" },
+        "basketPosition": { "$ref": "#/$defs/position" },
+        "teeYawDegrees": { "type": "number" },
+        "basketYawDegrees": { "type": "number" },
+        "teeEnabled": { "type": "boolean" },
+        "basketEnabled": { "type": "boolean" },
+        "obZones": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "points": { "type": "array", "minItems": 3, "maxItems": 64, "items": { "$ref": "#/$defs/point" } }
+            },
+            "required": ["points"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

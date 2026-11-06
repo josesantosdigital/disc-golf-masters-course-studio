@@ -1,0 +1,17 @@
+/bin/
+/obj/
+**/bin/
+**/obj/
+/Tools/.gitignore-fixtures/
+/.tools/
+/dist/
+/backups/
+/.vs/
+/Maps/
+/Courses/
+/CourseEditor/catalog.js
+/CourseEditor/assets/maps/*
+/deferred-install.log
+/CAB-*.txt
+*.user
+*.suo

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "sourceGame": "BONELAB",
+  "id": "bonelab-hoodcorner",
+  "name": "BONELAB Hood Corner Layout",
+  "baseCourse": "CanonPark",
+  "description": "Example imported-scene layout with experimental shadow diagnostics. Edit the map bundle and scene paths to match the installed pallet.",
+  "coordinateSpace": "unityWorld",
+  "mapScene": {
+    "scenePath": "Assets/Levels/ExampleMap.unity",
+    "bundlePath": "Maps/bonelab-hoodcorner/scene.bundle",
+    "dependencyBundlePaths": [
+      "Maps/bonelab-hoodcorner/dependencies/MonoScripts.bundle"
+    ]
+  },
+  "mapWorldBounds": {
+    "minX": -180,
+    "maxX": 180,
+    "minZ": -180,
+    "maxZ": 180,
+    "groundY": 0
+  },
+  "mapLighting": {
+    "preserveLightmaps": false,
+    "supplementLighting": true,
+    "useBaseSkybox": true,
+    "realtimeMapShadows": true,
+    "hideImportedParticles": false,
+    "generateTreeCanopyColliders": false,
+    "experimentalFoliageInteractions": true,
+    "useGameFoliageShader": false,
+    "preferBaseCourseSun": false,
+    "ambientIntensity": 1.2,
+    "keyLightIntensity": 2.5,
+    "ambientColor": { "r": 0.75, "g": 0.75, "b": 0.78 },
+    "keyLightColor": { "r": 1, "g": 0.95, "b": 0.88 }
+  },
+  "holes": [
+    {
+      "par": 3,
+      "lengthMeters": 64,
+      "shotLimit": 0,
+      "teePosition": { "x": 12, "y": 1.2, "z": -24 },
+      "basketPosition": { "x": 31, "y": 0.8, "z": 35 },
+      "teeYawDegrees": 20,
+      "basketYawDegrees": 75,
+      "obZones": []
+    },
+    {
+      "par": 4,
+      "lengthMeters": 96,
+      "teePosition": { "x": -45, "y": 1.1, "z": 18 },
+      "basketPosition": { "x": 34, "y": 0.9, "z": 82 },
+      "obZones": []
+    }
+  ]
+}

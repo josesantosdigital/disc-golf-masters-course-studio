@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "sourceGame": "Example course export",
+  "id": "ported-forest-nine",
+  "name": "Ported Forest Nine",
+  "baseCourse": "CanonPark",
+  "baseLayout": "",
+  "description": "Example normalized layout with local course offsets.",
+  "coordinateSpace": "courseOffsets",
+  "holes": [
+    {
+      "par": 3,
+      "lengthMeters": 78,
+      "shotLimit": 0,
+      "teeOffset": { "right": 0, "up": 0, "forward": 0 },
+      "basketOffset": { "right": 4, "up": 0, "forward": 72 },
+      "teeYawDegrees": 0,
+      "basketYawDegrees": 15,
+      "obZones": [
+        {
+          "name": "Creek",
+          "points": [
+            { "right": -8, "forward": 30 },
+            { "right": 7, "forward": 34 },
+            { "right": 11, "forward": 38 },
+            { "right": -5, "forward": 39 }
+          ]
+        }
+      ]
+    },
+    {
+      "par": 4,
+      "lengthMeters": 112,
+      "shotLimit": 0,
+      "teeOffset": { "right": 2, "up": 0, "forward": -4 },
+      "basketOffset": { "right": -6, "up": 0, "forward": 101 },
+      "teeYawDegrees": 4,
+      "basketYawDegrees": -8,
+      "obZones": []
+    }
+  ]
+}
