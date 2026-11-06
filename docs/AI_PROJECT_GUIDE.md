@@ -25,7 +25,7 @@ Version 0.5.96 adds a lighting candidate in Runtime/ImportedLitMaterials.cs, cal
 
 Local source audit is under .tools/lighting-audit-0.5.96. Source candle_light has emission red=1024, but its eight uses are far from the screenshot position; no emission clamp was added on that evidence. Southside's live course settings remain unchanged (local light multiplier 0). Backup of the working .95 DLL, changed sources, Southside definition and log: .tools/recovery/lighting-source-0.5.96-20261106/. The .95 rollback SHA-256 is AAC6347469D86D6447FAAAE50C7964FBF71A11D1D280DAD4840786B1A84DBB00.
 
-Installed 0.5.96: SHA-256 9425D15237CE877FEA68D2474C755DE74445B1F75E9C5B5C78B9E16B8D85D5E7 (287,744 bytes). Installed by atomic DLL replacement with .95 backup after confirming DGM was closed; live Southside JSON hash is unchanged. No game launch or controls. Build: zero warnings/errors. Production material migration passed 37 transfer/scope/rollback assertions; terrain isolation passed 18 assertions (both use component doubles). Seven converter scenarios passed. Package validation passed for Southside, Tiny Isle and the updated synthetic island example. TestBuildInstall and TestCourseStudioInstaller still fail because the pre-existing source Courses/SampleMeadowNine.json fixture is absent; no sample was restored into the player course list. Logs/evidence: .tools/lighting-audit-0.5.96/. Visual verification remains pending.
+Installed 0.5.96: SHA-256 9425D15237CE877FEA68D2474C755DE74445B1F75E9C5B5C78B9E16B8D85D5E7 (287,744 bytes). Installed by atomic DLL replacement with .95 backup after confirming DGM was closed; live Southside JSON hash is unchanged. No game launch or controls. Build: zero warnings/errors. Production material migration passed 37 transfer/scope/rollback assertions; terrain isolation passed 18 assertions (both use component doubles). Seven converter scenarios passed. Package validation passed for Southside, Tiny Isle and the updated synthetic island example. The missing sample-course fixture was repaired by moving its source to tracked Tools/Samples and making build.ps1 install only that synthetic sample instead of enumerating the ignored Courses directory. The 0.5.96 full offline preflight passed, including sample validation, fresh/update preservation, and exact DRAFT archive installation. This does not launch DGM or establish clean-game or visual acceptance; leave those checks for the user. Logs/evidence: .tools/lighting-audit-0.5.96/. Visual verification remains pending.
 
 Consolidated manual check after .96 installation: load Southside Hole 2, approach the bright storefront/gas-station area shown in the screenshot, confirm whether glare disappears while textures, cutout leaves and glass remain correct. Log should report native Lit migrations (expected 1,484 for this source) and no migration errors. Then return to a built-in course to check cleanup. Do not open or control the game; ask the user for that pass. Offline material tests exercise production migration against stateful doubles and do not prove Unity shader variant availability or visual output. The separate city-fix acceptance is already confirmed.
 
@@ -63,7 +63,7 @@ For the full offline preflight, run the project script below before release. It 
 # Optionally include a DRAFT archive for content and exact-extraction/install checks.
 .\Tools\TestReleasePreflight.ps1 `
   -ReferenceGameRoot 'C:\Games\Disc Golf Masters' `
-  -DraftArchivePath '.\dist\review\DiscGolfMasters-CourseStudio-0.5.34-DRAFT.zip'
+  -DraftArchivePath '<path to the exact DRAFT ZIP>'
 ~~~
 
 ~~~powershell
@@ -94,7 +94,7 @@ $version = [regex]::Match((Get-Content .\Plugin.cs -Raw), 'PluginVersion\s*=\s*"
 .\Tools\TestCourseStudioInstaller.ps1 -ArchivePath (Join-Path $reviewDirectory "DiscGolfMasters-CourseStudio-$version-DRAFT.zip")
 
 # Validate course packages before sharing.
-.\Tools\ValidateCoursePackage.ps1 -CoursePath .\Courses\SampleMeadowNine.json -PluginDirectory 'C:\Games\Disc Golf Masters\BepInEx\plugins\CustomCourseLoader'
+.\Tools\ValidateCoursePackage.ps1 -CoursePath .\Tools\Samples\SampleMeadowNine.json -PluginDirectory 'C:\Games\Disc Golf Masters\BepInEx\plugins\CustomCourseLoader'
 
 # Run isolated package-validation failure-path smoke checks.
 # Includes missing and invalid scene/dependency UnityFS bundles.

@@ -38,4 +38,4 @@ Run the command from the source project folder and replace `$gameRoot` with your
 
 ## Release status
 
-Course Studio is in active development. Draft packages are for local review only and must not be redistributed; the release checklist records the remaining dependency-license review, clean-install, compatibility, and in-game verification work. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages.
+Course Studio is in active development. The current 0.5.96 build is a release candidate, not a public release. Draft packages are for local review only and must not be redistributed; remaining gates include qualified dependency-license review, clean-install and editor-flow acceptance, and user acceptance of imported-map rendering and gameplay. The 0.5.96 DRAFT archive is for local review only and is not redistributable. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages.

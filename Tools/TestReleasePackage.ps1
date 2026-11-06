@@ -68,8 +68,7 @@ try {
     }
 
     $allowedCourseFiles = @(
-        'BepInEx/plugins/CustomCourseLoader/Courses/SampleMeadowNine.json',
-        'Source/CustomCourseLoader/Courses/SampleMeadowNine.json'
+        'BepInEx/plugins/CustomCourseLoader/Courses/SampleMeadowNine.json'
     )
     foreach ($coursePath in ($paths | Where-Object { $_ -match '(^|/)BepInEx/plugins/CustomCourseLoader/Courses/|^Source/CustomCourseLoader/Courses/' })) {
         if ($coursePath -notin $allowedCourseFiles) { throw "Archive contains non-sample player course data: $coursePath" }
@@ -85,6 +84,7 @@ try {
         'AGENTS.md',
         'BepInEx/plugins/CustomCourseLoader/CustomCourseLoader.dll',
         'BepInEx/plugins/CustomCourseLoader/Courses/SampleMeadowNine.json',
+        'Source/CustomCourseLoader/Tools/Samples/SampleMeadowNine.json',
         'BepInEx/plugins/CustomCourseLoader/CourseEditor/index.html',
         'BepInEx/plugins/CustomCourseLoader/CourseEditor/styles.css',
         'BepInEx/plugins/CustomCourseLoader/CourseEditor/catalog.js',
@@ -198,8 +198,7 @@ try {
         '/dist/',
         '/backups/',
         '/Maps/',
-        '/Courses/*',
-        '!/Courses/SampleMeadowNine.json',
+        '/Courses/',
         '/CourseEditor/catalog.js',
         '/CourseEditor/assets/maps/*'
     )

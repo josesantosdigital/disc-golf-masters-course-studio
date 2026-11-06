@@ -12,7 +12,8 @@ test("editing imported map settings serializes terrain and vegetation options", 
     "map-hide-particles": { checked: true }, "map-tree-canopy-collisions": { checked: true },
     "map-foliage-interactions": { checked: true },
     "map-game-foliage": { checked: true }, "map-lit-foliage": { checked: true }, "map-base-sun": { checked: true },
-    "map-preserve-lightmaps": { checked: false }, "map-repair-terrain-materials": { checked: true },
+    "map-preserve-lightmaps": { checked: false }, "map-disable-occlusion": { checked: false },
+    "map-repair-terrain-materials": { checked: true },
     "map-repair-terrain-details": { checked: true }, "map-force-tree-mesh-lods": { checked: true },
     "map-albedo-brightness": { value: "1.2" }, "map-local-light-multiplier": { value: "0.2" }, "map-ambient-color": { value: "#ffffff" },
     "map-ambient-intensity": { value: "1" }, "map-key-color": { value: "#ffffff" },
@@ -26,6 +27,7 @@ test("editing imported map settings serializes terrain and vegetation options", 
   assert.equal(state.draft.mapLighting.forceTreeMeshLods, true);
   assert.equal(state.draft.mapLighting.repairTerrainMaterials, true);
   assert.equal(state.draft.mapLighting.preserveLightmaps, false);
+  assert.equal(state.draft.mapLighting.disableCameraOcclusionCulling, false);
   assert.equal(state.draft.mapLighting.generateTreeCanopyColliders, true);
   assert.equal(state.draft.mapLighting.experimentalFoliageInteractions, true);
   assert.equal(state.draft.mapLighting.useGameFoliageShader, true);

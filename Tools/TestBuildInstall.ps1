@@ -40,7 +40,7 @@ function Copy-BuildReferences([string]$TargetGameRoot) {
 
 try {
     $builtPlugin = Join-Path $projectRoot 'bin\Release\net6.0\CustomCourseLoader.dll'
-    $sourceSampleCourse = Join-Path $projectRoot 'Courses\SampleMeadowNine.json'
+    $sourceSampleCourse = Join-Path $projectRoot 'Tools\Samples\SampleMeadowNine.json'
     $sourceEditorIndex = Join-Path $projectRoot 'CourseEditor\index.html'
     $sourceEditorCore = Join-Path $projectRoot 'CourseEditor\app-core.js'
 
@@ -53,6 +53,8 @@ try {
     Assert-True ((Get-Hash $freshInstalledPlugin) -eq (Get-Hash $builtPlugin)) 'the fresh-install plugin DLL does not match the build output'
     Assert-True (Test-Path -LiteralPath $freshSampleCourse -PathType Leaf) 'the bundled sample course was not copied to the fresh game root'
     Assert-True ((Get-Hash $freshSampleCourse) -eq (Get-Hash $sourceSampleCourse)) 'the fresh-install sample course does not match the bundled sample'
+    $freshCourseFiles = @(Get-ChildItem -LiteralPath (Join-Path $freshPluginRoot 'Courses') -File | Select-Object -ExpandProperty Name)
+    Assert-True ($freshCourseFiles.Count -eq 1 -and $freshCourseFiles[0] -eq 'SampleMeadowNine.json') 'the fresh install copied files other than the bundled sample course.'
     Assert-True ((Get-Hash (Join-Path $freshPluginRoot 'CourseEditor\index.html')) -eq (Get-Hash $sourceEditorIndex)) 'the Course Editor was not copied to the fresh game root'
 
     Copy-BuildReferences $updateGameRoot

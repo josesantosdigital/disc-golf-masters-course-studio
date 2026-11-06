@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $buildDll = Join-Path $projectRoot 'bin\Release\net6.0\CustomCourseLoader.dll'
 $installerSource = Join-Path $projectRoot 'Install-CourseStudio.ps1'
-$sampleSource = Join-Path $projectRoot 'Courses\SampleMeadowNine.json'
+$sampleSource = Join-Path $projectRoot 'Tools\Samples\SampleMeadowNine.json'
 $editorSource = Join-Path $projectRoot 'CourseEditor'
 $editorPrefix = [IO.Path]::GetFullPath($editorSource).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 if (-not (Test-Path -LiteralPath $buildDll -PathType Leaf)) { throw "Build output is missing: $buildDll" }

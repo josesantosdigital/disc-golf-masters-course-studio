@@ -56,13 +56,14 @@ if (-not $deferredInstall) {
         throw "Installed plugin hash does not match the build output ($builtHash != $installedHash)."
     }
 }
-Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'Courses') -File | Where-Object { $_.Extension -in '.json', '.png' } | ForEach-Object {
-    $courseDestination = Join-Path $coursesDir $_.Name
-    if (Test-Path -LiteralPath $courseDestination) {
-        Write-Host "Keeping existing course file: $courseDestination"
+$sampleCourseSource = Join-Path $PSScriptRoot 'Tools\Samples\SampleMeadowNine.json'
+if (Test-Path -LiteralPath $sampleCourseSource -PathType Leaf) {
+    $sampleCourseDestination = Join-Path $coursesDir 'SampleMeadowNine.json'
+    if (Test-Path -LiteralPath $sampleCourseDestination) {
+        Write-Host "Keeping existing course file: $sampleCourseDestination"
     }
     else {
-        Copy-Item -LiteralPath $_.FullName -Destination $courseDestination
+        Copy-Item -LiteralPath $sampleCourseSource -Destination $sampleCourseDestination
     }
 }
 New-Item -ItemType Directory -Force -Path $editorDir | Out-Null

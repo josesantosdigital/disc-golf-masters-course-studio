@@ -12,7 +12,6 @@ Course definitions are UTF-8 JSON files stored in `BepInEx/plugins/CustomCourseL
   "baseCourse": "CanonPark",
   "baseLayout": "",
   "description": "A nine-hole example course.",
-  "courseCardImage": "sample-meadow-nine-hole-01.png",
   "holes": [
     {
       "par": 3,
@@ -24,8 +23,7 @@ Course definitions are UTF-8 JSON files stored in `BepInEx/plugins/CustomCourseL
       "basketYawDegrees": 15,
       "teeEnabled": true,
       "basketEnabled": true,
-      "obZones": [],
-      "cardImage": "sample-meadow-nine-hole-01.png"
+      "obZones": []
     }
   ]
 }
@@ -35,7 +33,7 @@ The example has one hole for readability. A playable course file contains its fu
 
 When the selector first adds custom courses, a loading screen covers the list until the entries are registered and its layout has settled, or a safety timeout expires. For example, selecting the list containing Sample Meadow Nine shows “Loading custom courses” during preparation. The loader does not show this screen when entering a course. This behavior does not change the course JSON.
 
-For a scenic selector image, the loader attempts to capture the current hole from a separate camera after a custom round has loaded. After a successful capture, the next course selection can use that scenery instead of `sample-meadow-nine-hole-01.png`. Captures are cached under `BepInEx/config/CustomCourseLoader/Previews` using the course ID and a fingerprint of its JSON; editing the JSON causes a new capture attempt on the next play. The original card files are preserved and used when no rendered capture is available. Per-hole tee signs continue to use the configured card images. Selector badges use a shared custom disc-golf emblem. Capture appearance and timing depend on the loaded scene and camera and still need in-game verification.
+For a scenic selector image, the loader attempts to capture the current hole from a separate camera after a custom round has loaded. After a successful capture, the next course selection can use that scenery instead of the configured course-card image. Captures are cached under `BepInEx/config/CustomCourseLoader/Previews` using the course ID and a fingerprint of its JSON; editing the JSON causes a new capture attempt on the next play. The original card files are preserved and used when no rendered capture is available. Per-hole tee signs continue to use the configured card images. Selector badges use a shared custom disc-golf emblem. Capture appearance and timing depend on the loaded scene and camera and still need in-game verification.
 
 ## Top-level fields
 

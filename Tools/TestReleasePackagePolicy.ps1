@@ -19,7 +19,8 @@ $blockedPaths = @(
 $allowedPaths = @(
     'README.md',
     'Runtime/Patches/ImportedMapRendering.cs',
-    'Courses/SampleMeadowNine.json',
+    'Tools/Samples/SampleMeadowNine.json',
+    'BepInEx/plugins/CustomCourseLoader/Courses/SampleMeadowNine.json',
     'CourseEditor/assets/course-icon.svg',
     'package-manifest.json'
 )

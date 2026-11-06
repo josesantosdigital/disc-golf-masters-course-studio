@@ -59,6 +59,10 @@ try {
         Invoke-PowerShellCheck 'Build/install preservation fixtures' (Join-Path $projectRoot 'Tools\TestBuildInstall.ps1') @{ ReferenceGameRoot = $referenceRootFull }
         Invoke-PowerShellCheck 'BONELAB and generic converter fixtures' (Join-Path $projectRoot 'Tools\TestCourseConverters.ps1') @{}
         Invoke-PowerShellCheck 'Course package validation fixtures' (Join-Path $projectRoot 'Tools\TestCoursePackageValidation.ps1') @{}
+        Invoke-PowerShellCheck 'Bundled sample course' (Join-Path $projectRoot 'Tools\ValidateCoursePackage.ps1') @{
+            CoursePath = (Join-Path $projectRoot 'Tools\Samples\SampleMeadowNine.json')
+            PluginDirectory = (Join-Path $referenceRootFull 'BepInEx\plugins\CustomCourseLoader')
+        }
         Invoke-PowerShellCheck 'Release archive asset-boundary policy' (Join-Path $projectRoot 'Tools\TestReleasePackagePolicy.ps1') @{}
         Invoke-PowerShellCheck 'Git ignore boundaries' (Join-Path $projectRoot 'Tools\TestGitIgnore.ps1') @{}
         Invoke-ExternalCheck 'Course Editor, map catalog, and settings checks' $nodeCommand.Source @('--test', '.\Tools\TestCourseEditorExport.cjs', '.\Tools\TestMapCatalog.cjs', '.\Tools\TestMapLightingSettings.cjs')

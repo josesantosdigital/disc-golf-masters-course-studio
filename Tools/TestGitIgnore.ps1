@@ -59,7 +59,7 @@ try {
         'docs/PORTING_GUIDE.md',
         'Runtime/Patches/CourseScenePatch.cs',
         'Tools/TestGitIgnore.ps1',
-        'Courses/SampleMeadowNine.json'
+        'Tools/Samples/SampleMeadowNine.json'
     )
 
     foreach ($path in @($ignoredPaths + $includedPaths)) { New-FixtureFile $path }

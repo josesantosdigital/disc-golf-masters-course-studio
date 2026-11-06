@@ -87,7 +87,7 @@ try {
     }
     $catalogPlaceholder = 'window.DGM_BUILTIN_COURSES = { version: 1, courses: [] };' + [Environment]::NewLine
     [IO.File]::WriteAllText((Join-Path $stagingRoot 'BepInEx\plugins\CustomCourseLoader\CourseEditor\catalog.js'), $catalogPlaceholder, [Text.UTF8Encoding]::new($false))
-    Copy-FileIntoPackage (Join-Path $projectRoot 'Courses\SampleMeadowNine.json') 'BepInEx\plugins\CustomCourseLoader\Courses\SampleMeadowNine.json'
+    Copy-FileIntoPackage (Join-Path $projectRoot 'Tools\Samples\SampleMeadowNine.json') 'BepInEx\plugins\CustomCourseLoader\Courses\SampleMeadowNine.json'
 
     foreach ($item in @('.gitignore', '.gitattributes', 'README.md', 'CHANGELOG.md', 'THIRD_PARTY_NOTICES.md', 'RENDERING.md', 'AGENTS.md', 'CustomCourseLoader.csproj', 'Install-CourseStudio.ps1', 'build.ps1', 'InstallUpdateAfterExit.ps1', 'New-ReleasePackage.ps1')) {
         $sourcePath = Join-Path $projectRoot $item
@@ -104,7 +104,6 @@ try {
         Copy-FileIntoPackage $file.FullName ('Source\CustomCourseLoader\CourseEditor\' + $relative)
     }
     [IO.File]::WriteAllText((Join-Path $stagingRoot 'Source\CustomCourseLoader\CourseEditor\catalog.js'), $catalogPlaceholder, [Text.UTF8Encoding]::new($false))
-    Copy-FileIntoPackage (Join-Path $projectRoot 'Courses\SampleMeadowNine.json') 'Source\CustomCourseLoader\Courses\SampleMeadowNine.json'
     foreach ($file in Get-ChildItem -LiteralPath $projectRoot -Filter '*.cs' -File -Recurse) {
         $relative = Get-RelativeFilePath $projectRoot $file.FullName
         if ($relative -match '(^|[\\/])(bin|obj|\.tools)[\\/]') { continue }

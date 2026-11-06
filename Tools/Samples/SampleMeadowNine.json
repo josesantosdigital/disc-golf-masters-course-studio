@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "id": "sample-meadow-nine",
+  "name": "Sample Meadow Nine",
+  "baseCourse": "CanonPark",
+  "baseLayout": "",
+  "description": "A nine-hole starter round on Canon Park's default layout. Open it in Course Studio to customize tee and basket placements, pars, and hole settings.",
+  "holes": [
+    { "par": 3, "lengthMeters": 75, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 90, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 80, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 95, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 85, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 100, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 70, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 90, "shotLimit": 0 },
+    { "par": 3, "lengthMeters": 95, "shotLimit": 0 }
+  ]
+}
