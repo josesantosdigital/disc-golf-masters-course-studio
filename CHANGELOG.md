@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.5.101 development
+- Clarify the proposed public source and plugin/tool ZIP channels, the separate author-built course ZIP workflow, and the post-gate publication sequence. This identifies what a qualified reviewer should assess without claiming approval or redistribution rights for imported map assets.
 - Remove `SoloConfiguration.GetCourses` entirely. The 0.5.100 test still reached the same fatal IL2CPP `AccessViolationException` in that method even though the postfix only queued work. Discover the selector through `CourseSelectionViewController.Awake` alongside the existing view setup/card hooks, so course selection no longer patches the crashing method. This requires a manual check that custom cards appear and that a hole can finish without a crash.
 - Refuse Map Explorer deletion when a managed plugin/course/map/editor root is a symbolic link or non-directory, including a second root check before removing files.
 

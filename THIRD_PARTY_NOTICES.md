@@ -23,6 +23,14 @@ These are technical distribution facts for a qualified reviewer, not a legal con
 - The release archive contains the plugin DLL and the original Course Studio source, but not the referenced runtime DLLs. The player installs Disc Golf Masters and BepInEx separately. The archive includes the exact pinned dependency license texts listed above.
 - The pinned BepInEx license is LGPL-2.1-or-later. The pinned Il2CppInterop license contains LGPL-3.0 and its incorporated GPL-3.0 text. The GNU project's [LGPL FAQ on static versus dynamic linking](https://www.gnu.org/licenses/gpl-faq.en.html#LGPLStaticVsDynamic) describes how distribution of a library can affect the analysis; consult the [LGPL 2.1 text](https://www.gnu.org/licenses/lgpl-2.1.html) and [LGPL 3.0 text](https://www.gnu.org/licenses/lgpl-3.0.html) for the exact versions referenced here.
 
+### Proposed distribution surface for review
+
+The planned public release has two project-owned distribution forms: the GitHub source repository, and a versioned Course Studio ZIP containing the plugin DLL, editor, converter tools, documentation, project source, and notices. Neither form includes BepInEx, Il2CppInterop, Harmony, Unity, or DGM runtime assemblies; users obtain the game and BepInEx separately. The repository is currently private and the ZIP remains marked DRAFT until both release gates close.
+
+Course authors can separately create per-course ZIPs. A layout-only package contains course JSON and its card; an imported-map package can additionally contain the scene and dependency bundles only when the author records redistribution permission and a source reference. These course packages do not include the Course Studio plugin or its runtime dependencies. Course-sharing links may also be posted through the Discord workflow documented in `docs/PORTING_GUIDE.md`; the author remains responsible for rights to each map and its assets.
+
+The reviewer should confirm which of these channels and package forms are in scope, and whether each needs separate notices, source delivery, or other conditions. Do not treat the proposed list as legal approval or as permission to distribute any imported course assets.
+
 The release reviewer should determine how the BepInEx plugin loading and assembly-reference model applies under these exact LGPL versions, and whether the archive's source, notices, separately installed runtime, and user ability to replace or modify the referenced libraries meet all applicable requirements. The package audit verifies file contents and license-copy presence; it cannot decide this legal question.
 
 ### Qualified review record
