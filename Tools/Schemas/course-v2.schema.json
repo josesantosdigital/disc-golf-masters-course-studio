@@ -99,6 +99,7 @@
     },
     "mapWorldBounds": {
       "type": "object",
+      "description": "Imported X/Z bounds set editor coordinates, automatic hole-sampling extent, and the fallback normal-play rectangle (expanded by 5% of the larger span, clamped to 10-40 m). groundY guides marker snapping and sampled-ground selection. Does not rescale the scene.",
       "properties": {
         "minX": { "type": "number", "minimum": -10000, "maximum": 10000 },
         "maxX": { "type": "number", "minimum": -10000, "maximum": 10000 },
