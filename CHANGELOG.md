@@ -2,6 +2,7 @@
 
 ## 0.5.101 development
 - Remove `SoloConfiguration.GetCourses` entirely. The 0.5.100 test still reached the same fatal IL2CPP `AccessViolationException` in that method even though the postfix only queued work. Discover the selector through `CourseSelectionViewController.Awake` alongside the existing view setup/card hooks, so course selection no longer patches the crashing method. This requires a manual check that custom cards appear and that a hole can finish without a crash.
+- Refuse Map Explorer deletion when a managed plugin/course/map/editor root is a symbolic link or non-directory, including a second root check before removing files.
 
 ## 0.5.100 development
 - Restore custom-course selector discovery after 0.5.99 stopped the list-attachment path. The `SoloConfiguration.GetCourses` Harmony postfix now only queues a flag; `CourseLoadingDriver.Update` performs selector lookup and course-entry registration on the next frame, outside the IL2CPP method callback. This preserves the selector trigger while avoiding the immediate Unity lookup and view mutation that ran inside `GetCourses`. Round-completion safety still needs manual confirmation.

@@ -159,3 +159,46 @@ test("map deletion removes only unshared course files and bundles", async functi
     fs.rmSync(cleanupTarget, { recursive: true, force: true });
   }
 });
+
+test("map deletion refuses a managed root reported as a symlink", async function () {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dgm-map-delete-link-"));
+  try {
+    const pluginRoot = path.join(tempRoot, "CustomCourseLoader");
+    const courseFiles = path.join(pluginRoot, "Courses");
+    const mapsRoot = path.join(pluginRoot, "Maps");
+    const editorRoot = path.join(pluginRoot, "CourseEditor");
+    const outsideCourses = path.join(tempRoot, "outside-courses");
+    const outsideCourse = path.join(outsideCourses, "map-one.json");
+    const sceneBundle = path.join(mapsRoot, "one", "scene.bundle");
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.mkdirSync(outsideCourses, { recursive: true });
+    fs.mkdirSync(path.dirname(sceneBundle), { recursive: true });
+    fs.mkdirSync(editorRoot, { recursive: true });
+    fs.writeFileSync(outsideCourse, JSON.stringify({
+      id: "map-one", name: "Map One", holes: [],
+      mapScene: { scenePath: "Assets/One.unity", bundlePath: "Maps/one/scene.bundle" }
+    }));
+    fs.writeFileSync(sceneBundle, "UnityFS fixture");
+    const originalLstat = fs.promises.lstat;
+    fs.promises.lstat = async function (target, ...args) {
+      if (path.resolve(String(target)) === path.resolve(courseFiles)) {
+        return { isSymbolicLink: function () { return true; }, isDirectory: function () { return false; } };
+      }
+      return originalLstat.call(fs.promises, target, ...args);
+    };
+    try {
+      await assert.rejects(deleteInstalledMap({ pluginRoot, courseFiles, mapsRoot, editorRoot }, {
+        courseFileName: "map-one.json", bundlePath: "Maps/one/scene.bundle"
+      }), /managed folder is linked/);
+    } finally {
+      fs.promises.lstat = originalLstat;
+    }
+    assert.equal(fs.existsSync(outsideCourse), true, "the course outside the plugin root must remain untouched");
+    assert.equal(fs.existsSync(sceneBundle), true, "refusing the linked root must happen before any bundle deletion");
+  } finally {
+    const tempBase = path.resolve(os.tmpdir()) + path.sep;
+    const cleanupTarget = path.resolve(tempRoot);
+    if (!cleanupTarget.startsWith(tempBase)) throw new Error("Refusing to remove a path outside the system temp directory.");
+    fs.rmSync(cleanupTarget, { recursive: true, force: true });
+  }
+});

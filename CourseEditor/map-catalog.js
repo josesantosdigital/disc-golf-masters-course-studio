@@ -115,6 +115,11 @@ async function deleteInstalledMap(options, selection) {
     throw mapError(400, "The selected course file name is invalid.");
   }
 
+  await assertSafeManagedDirectory(pluginRoot);
+  await assertSafeManagedDirectory(courseFiles);
+  await assertSafeManagedDirectory(mapsRoot, true);
+  await assertSafeManagedDirectory(editorRoot, true);
+
   const maps = await listInstalledMaps(options);
   const matches = maps.filter(function (map) {
     if (courseFileName) return map.courseFileName === courseFileName && (!selectedBundlePath || map.bundlePath === selectedBundlePath);
@@ -240,6 +245,7 @@ function collectCourseImageNames(course) {
 }
 
 async function assertSafeFileTarget(root, target, allowMissing) {
+  if (!await assertSafeManagedDirectory(root, allowMissing)) return false;
   const relative = path.relative(root, target);
   if (!relative || relative === ".." || relative.startsWith(".." + path.sep) || path.isAbsolute(relative)) {
     throw mapError(400, "A selected map file points outside its managed folder.");
@@ -257,6 +263,20 @@ async function assertSafeFileTarget(root, target, allowMissing) {
     if (stat.isSymbolicLink()) throw mapError(409, "A selected map path is linked; deletion was refused for safety.");
     if (current !== target && !stat.isDirectory()) throw mapError(409, "A selected map path contains a non-folder component.");
     if (current === target && !stat.isFile()) throw mapError(409, "A selected map path is not a regular file.");
+  }
+  return true;
+}
+
+async function assertSafeManagedDirectory(root, allowMissing) {
+  let stat;
+  try { stat = await fs.promises.lstat(root); }
+  catch (error) {
+    if (allowMissing && error.code === "ENOENT") return false;
+    if (error.code === "ENOENT") throw mapError(404, "A selected map's managed folder is missing.");
+    throw error;
+  }
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
+    throw mapError(409, "A selected map's managed folder is linked or is not a directory; deletion was refused for safety.");
   }
   return true;
 }
