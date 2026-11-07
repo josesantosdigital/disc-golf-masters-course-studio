@@ -88,7 +88,7 @@ Notes:
 - A shot limit of `0` means no limit. A positive limit is the maximum throws before the round advances from that hole.
 - Removing tee or basket art hides the visible object. The basket's scoring trigger remains available to the game.
 - Original-course offsets use local right/up/forward meters relative to the built-in tee. Imported-map positions use absolute Unity world X/Y/Z meters.
-- Imported map bounds calibrate the editor's 2D map preview to Unity world coordinates. They do not change the Unity scene.
+- Imported map bounds set the editor's 2D preview coordinates and limit terrain sampling for automatic hole placement. Keep them around the playable area; bounds that include broad terrain outside a city can place automatic holes in empty grass. Bounds do not rescale the Unity scene.
 - **Map settings → Advanced lighting** includes optional realtime shadows and a switch to hide imported particle effects. The nested **Terrain & vegetation** group offers a lit foliage cutout shader, lightmap preservation, terrain material repair, textured terrain-detail repair, and distant tree meshes. These are per-map rendering fixes; they can change appearance and performance, so check each result in game. Hiding particles removes those effects entirely.
 - A map preview image is for editing. When you play a custom course, the loader attempts to capture a scenic selector image; until then, it shows the course card image. Per-hole cards are shown near tees. Captures are stored separately in `BepInEx/config/CustomCourseLoader/Previews` and do not overwrite your cards.
 - Custom-course personal bests are stored separately in `BepInEx/config/CustomCourseLoader.personal-bests.json`, keyed by layout ID. A record is written only after every hole in the round has a score; values are relative to par and a lower value replaces a higher one. This does not change DGM's built-in course progression. Older custom-course results in the game's PlayerStats data are not imported automatically.
@@ -96,7 +96,7 @@ Notes:
 
 ## Create a custom map
 
-Use **Add map package…** in the Installed maps view to create a course on a Unity scene bundle. Enter the scene's `.unity` asset path and its bundle path under `Maps`. Add required dependency bundles, provide a top-down screenshot, then set world bounds and place every tee and basket.
+Use **Add map package…** in the Installed maps view to create a course on a Unity scene bundle. Enter the scene's `.unity` asset path and its bundle path under `Maps`. Add required dependency bundles, provide a top-down screenshot, then set world bounds tightly around the playable area and place every tee and basket. If using automatic hole placement, bounds also constrain its ground sampling, so exclude empty outskirts and keep every intended hole inside the bounds.
 
 If a source game exports its hole data, the included `Tools/ConvertCourseLayoutJson.ps1` can convert it after mapping the fields to `Tools/Schemas/course-layout-interchange.schema.json`. For an imported map, reference the already-installed scene bundle and use `coordinateSpace: "unityWorld"`. Without source layout data, place the holes in Course Studio.
 
