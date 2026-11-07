@@ -2,6 +2,8 @@
 
 The .NET `dotnet run` checks below require an SDK. Maintainer checkouts with `.tools\dotnet\dotnet.exe` should use the project-local SDK and CLI-home setup in the [AI project guide](../docs/AI_PROJECT_GUIDE.md). The release archive omits `.tools`, so install a .NET 6 SDK to run these checks from an extracted source package; a runtime-only `dotnet` on `PATH` cannot run SDK commands.
 
+Run `Tools/TestOfflineChecks.ps1` from the source root to execute the contributor checks without a local DGM installation. It prefers the project-local SDK, uses isolated temporary .NET/NuGet state, and checks converters, package validation, editor scripts, PowerShell syntax, and pure C# logic. The Windows GitHub Actions workflow runs the same command. This does not compile the game plugin against DGM assemblies or replace the full release preflight below.
+
 Run the complete offline release preflight from the source root with `.\Tools\TestReleasePreflight.ps1 -ReferenceGameRoot 'C:\Games\Disc Golf Masters'`. It checks build/install preservation, converter and package-validation fixtures, the tracked synthetic sample, blocked/allowed release-asset policy examples, Git ignore boundaries in a disposable repository, Course Editor Node tests, and all pure C# check projects. Add `-DraftArchivePath '<path to the exact DRAFT ZIP>'` to audit and install-test that archive. The script uses disposable fixtures and does not install into or start the reference game; it does not replace a clean real-game launch.
 
 Run `dotnet run --project .\Tools\CourseLoadingChecks\CourseLoadingChecks.csproj` to check selector loading delays, layout stability and timeout behavior without Unity. This does not test the in-game overlay.

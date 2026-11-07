@@ -1,0 +1,41 @@
+name: Offline checks
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offline-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-offline:
+    name: Windows offline validation
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.x
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Run offline checks
+        shell: pwsh
+        run: .\Tools\TestOfflineChecks.ps1
