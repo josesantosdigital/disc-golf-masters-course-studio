@@ -13,6 +13,10 @@
     "description": { "type": "string", "maxLength": 180 },
     "courseCardImage": { "$ref": "#/$defs/pngName" },
     "autoLayout": { "enum": ["", "long"] },
+    "layoutGroundColliderExclusions": {
+      "type": "array", "maxItems": 8,
+      "items": { "type": "string", "minLength": 1, "maxLength": 64 }
+    },
     "waterLandingClearanceMeters": { "type": "number", "minimum": 0, "maximum": 25 },
     "holes": {
       "type": "array", "minItems": 1, "maxItems": 18,

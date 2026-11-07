@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.102 development
+- Add optional `layoutGroundColliderExclusions` name fragments for automatic imported-map hole sampling. The 711 DGC course now excludes its giant decorative grass `Terrain` collider, which dominated the previous layout candidates and placed holes outside the city. The option is available in Course Studio map settings and only changes auto-layout sampling; excluded surfaces remain collidable during play.
+
 ## 0.5.101 development
 - Add a Windows GitHub Actions workflow for the no-game offline contributor checks, plus a single documented entry point that prefers the project-local .NET SDK and isolates temporary .NET/NuGet state.
 - Clarify the proposed public source and plugin/tool ZIP channels, the separate author-built course ZIP workflow, and the post-gate publication sequence. This identifies what a qualified reviewer should assess without claiming approval or redistribution rights for imported map assets.

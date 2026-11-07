@@ -240,10 +240,12 @@ internal static partial class CourseScenePatcher
     private static int LayoutRayTriggerHitCount;
     private static int LayoutRaySlopeHitCount;
     private static int LayoutRayNamedHitCount;
+    private static int LayoutRayExcludedHitCount;
     private static int LayoutRayWideHitCount;
     private static int LayoutRayHeightHitCount;
     private static int LayoutRayAcceptedCount;
     private static readonly List<string> LayoutRayExamples = new();
+    private static readonly List<string> LayoutRayExcludedExamples = new();
     private static bool HasImportedPlayBounds;
     private static float ImportedPlayMinX;
     private static float ImportedPlayMaxX;
@@ -625,7 +627,7 @@ internal static partial class CourseScenePatcher
         {
             try
             {
-                autoHoles = PlanLongImportedHoles(mapScene, mapBounds, custom.Definition.MapWorldBounds, count, custom.LayoutTargetLengths);
+                autoHoles = PlanLongImportedHoles(mapScene, mapBounds, custom.Definition.MapWorldBounds, custom.Definition.LayoutGroundColliderExclusions, count, custom.LayoutTargetLengths);
                 if (autoHoles.Count != count)
                 {
                     Plugin.LogSource.LogError($"Could not find enough grounded positions for '{custom.Definition.Name}'. Skipping course placement rather than putting tees or baskets at a scene-bound fallback height.");
@@ -1177,7 +1179,7 @@ internal static partial class CourseScenePatcher
         }
     }
 
-    private static List<ImportedCoursePlanner.Hole> PlanLongImportedHoles(Scene mapScene, Bounds bounds, MapWorldBoundsDefinition configuredBounds, int count, IReadOnlyList<int> targetLengths)
+    private static List<ImportedCoursePlanner.Hole> PlanLongImportedHoles(Scene mapScene, Bounds bounds, MapWorldBoundsDefinition configuredBounds, IReadOnlyList<string> excludedGroundNames, int count, IReadOnlyList<int> targetLengths)
     {
         // Some imported levels include decorative meshes thousands of metres apart.
         // A fixed 13x13 grid can skip the playable island entirely; tighten spacing
@@ -1194,10 +1196,12 @@ internal static partial class CourseScenePatcher
         LayoutRayTriggerHitCount = 0;
         LayoutRaySlopeHitCount = 0;
         LayoutRayNamedHitCount = 0;
+        LayoutRayExcludedHitCount = 0;
         LayoutRayWideHitCount = 0;
         LayoutRayHeightHitCount = 0;
         LayoutRayAcceptedCount = 0;
         LayoutRayExamples.Clear();
+        LayoutRayExcludedExamples.Clear();
         var samples = new List<ImportedCoursePlanner.Point>();
         var clearSamples = new List<ImportedCoursePlanner.Point>();
         var groundSampleCounts = new Dictionary<int, (string Name, string Root, int Count, Vector3 Center, Vector3 Size)>();
@@ -1214,7 +1218,7 @@ internal static partial class CourseScenePatcher
                 var u = Mathf.Lerp(0.04f, 0.96f, x / (float)(sideLength - 1));
                 var v = Mathf.Lerp(0.04f, 0.96f, z / (float)(sideLength - 1));
                 var origin = new Vector3(Mathf.Lerp(bounds.min.x, bounds.max.x, u), rayStartY, Mathf.Lerp(bounds.min.z, bounds.max.z, v));
-                if (!TryFindLayoutGround(mapScene, origin, rayLength, configuredBounds, out var point, out var groundCollider)) continue;
+                if (!TryFindLayoutGround(mapScene, origin, rayLength, configuredBounds, excludedGroundNames, out var point, out var groundCollider, true)) continue;
                 ImportedMapPhysicsSupport.UseDiscTerrainLayer(groundCollider);
                 var candidate = new ImportedCoursePlanner.Point(point.x, point.y + 0.04f, point.z);
                 samples.Add(candidate);
@@ -1252,7 +1256,7 @@ internal static partial class CourseScenePatcher
             Plugin.LogSource.LogInfo($"Sparse imported ground retry: refined from {coarseSampleCount} samples on the coarse grid to {samples.Count} samples on a {gridSize}x{gridSize} grid.");
         }
         LayoutRayDiagnosticsEnabled = false;
-        Plugin.LogSource.LogInfo($"Imported layout ray diagnostic for '{mapScene.name}': bounds X {bounds.min.x:F1}..{bounds.max.x:F1}, Y {bounds.min.y:F1}..{bounds.max.y:F1}, Z {bounds.min.z:F1}..{bounds.max.z:F1}; rays={LayoutRayCount}, hits={LayoutRayHitCount}, mapHits={LayoutRayMapHitCount}, otherSceneHits={LayoutRayOtherSceneHitCount}, waterHits={LayoutRayWaterHitCount}, triggerHits={LayoutRayTriggerHitCount}, slopeRejected={LayoutRaySlopeHitCount}, namedRejected={LayoutRayNamedHitCount}, oversizedRejected={LayoutRayWideHitCount}, groundHeightRejected={LayoutRayHeightHitCount}, accepted={LayoutRayAcceptedCount}; examples={string.Join(" || ", LayoutRayExamples)}.");
+        Plugin.LogSource.LogInfo($"Imported layout ray diagnostic for '{mapScene.name}': bounds X {bounds.min.x:F1}..{bounds.max.x:F1}, Y {bounds.min.y:F1}..{bounds.max.y:F1}, Z {bounds.min.z:F1}..{bounds.max.z:F1}; excluded ground-name tokens=[{string.Join(", ", excludedGroundNames ?? Array.Empty<string>())}], rays={LayoutRayCount}, hits={LayoutRayHitCount}, mapHits={LayoutRayMapHitCount}, otherSceneHits={LayoutRayOtherSceneHitCount}, waterHits={LayoutRayWaterHitCount}, triggerHits={LayoutRayTriggerHitCount}, slopeRejected={LayoutRaySlopeHitCount}, namedRejected={LayoutRayNamedHitCount}, excludedGroundRejected={LayoutRayExcludedHitCount}, oversizedRejected={LayoutRayWideHitCount}, groundHeightRejected={LayoutRayHeightHitCount}, accepted={LayoutRayAcceptedCount}; examples={string.Join(" || ", LayoutRayExamples)}; excluded examples={string.Join(" || ", LayoutRayExcludedExamples)}.");
         for (var a = 0; a < samples.Count; a++)
         for (var b = a + 1; b < samples.Count; b++)
         {
@@ -1273,7 +1277,7 @@ internal static partial class CourseScenePatcher
         var result = ImportedCoursePlanner.Plan(planningSamples, count, targetLengths, out var usedRelaxedPairs);
         if (usedRelaxedPairs)
             Plugin.LogSource.LogWarning($"Long imported layout for '{mapScene.name}' used relaxed grounded pairs to complete holes because the map's land clusters do not fit the preferred distance windows.");
-        Plugin.LogSource.LogInfo($"Long imported layout: {gridSize}x{gridSize} ground grid, {samples.Count} grounded candidate positions, {clearSamples.Count} with local and overhead clearance ({overheadObstructed} rejected for overhead obstruction), target lengths=[{string.Join(", ", targetLengths)}]m, {result.Count} hole(s) planned; maximum candidate separation {maxSampleDistance:F1}m.");
+        Plugin.LogSource.LogInfo($"Long imported layout: {gridSize}x{gridSize} ground grid, {samples.Count} grounded candidate positions, {clearSamples.Count} with local and overhead clearance ({overheadObstructed} rejected for overhead obstruction), excluded ground-name tokens=[{string.Join(", ", excludedGroundNames ?? Array.Empty<string>())}], target lengths=[{string.Join(", ", targetLengths)}]m, {result.Count} hole(s) planned; maximum candidate separation {maxSampleDistance:F1}m.");
         foreach (var sample in groundSampleCounts.Values.OrderByDescending(value => value.Count).Take(8))
             Plugin.LogSource.LogInfo($"Ground candidate collider '{sample.Name}' under root '{sample.Root}': {sample.Count} grid hit(s), center=({sample.Center.x:F1},{sample.Center.y:F1},{sample.Center.z:F1}), size=({sample.Size.x:F1},{sample.Size.y:F1},{sample.Size.z:F1}).");
         return result;
@@ -1320,9 +1324,6 @@ internal static partial class CourseScenePatcher
         }
     }
 
-    private static bool TryFindLayoutGround(Scene scene, Vector3 origin, float distance, MapWorldBoundsDefinition configuredBounds, out Vector3 point, out Collider groundCollider) =>
-        TryFindLayoutGround(scene, origin, distance, configuredBounds, out point, out groundCollider, true);
-
     private static bool IsNamedBuildingSurface(Collider collider)
     {
         for (var transform = collider == null ? null : collider.transform; transform != null; transform = transform.parent)
@@ -1337,7 +1338,24 @@ internal static partial class CourseScenePatcher
         return false;
     }
 
-    private static bool TryFindLayoutGround(Scene scene, Vector3 origin, float distance, MapWorldBoundsDefinition configuredBounds, out Vector3 point, out Collider groundCollider, bool allowMeshAlignment)
+    private static bool IsExcludedLayoutGround(Collider collider, IReadOnlyList<string> excludedNames)
+    {
+        if (collider == null || excludedNames == null || excludedNames.Count == 0)
+            return false;
+
+        for (var transform = collider.transform; transform != null; transform = transform.parent)
+        {
+            for (var i = 0; i < excludedNames.Count; i++)
+            {
+                var excludedName = excludedNames[i];
+                if (!string.IsNullOrWhiteSpace(excludedName) && transform.name.IndexOf(excludedName, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool TryFindLayoutGround(Scene scene, Vector3 origin, float distance, MapWorldBoundsDefinition configuredBounds, IReadOnlyList<string> excludedGroundNames, out Vector3 point, out Collider groundCollider, bool allowMeshAlignment)
     {
         point = default;
         groundCollider = null;
@@ -1388,6 +1406,19 @@ internal static partial class CourseScenePatcher
                 if (IsNamedBuildingSurface(collider))
                 {
                     if (LayoutRayDiagnosticsEnabled && preparationPass == 0) LayoutRayNamedHitCount++;
+                    continue;
+                }
+                if (IsExcludedLayoutGround(collider, excludedGroundNames))
+                {
+                    if (LayoutRayDiagnosticsEnabled && preparationPass == 0)
+                    {
+                        LayoutRayExcludedHitCount++;
+                        if (LayoutRayExcludedExamples.Count < 12)
+                        {
+                            var colliderBounds = collider.bounds;
+                            LayoutRayExcludedExamples.Add($"{collider.name}[root={collider.transform.root.name},center=({colliderBounds.center.x:F1},{colliderBounds.center.y:F1},{colliderBounds.center.z:F1}),size=({colliderBounds.size.x:F1},{colliderBounds.size.y:F1},{colliderBounds.size.z:F1})]");
+                        }
+                    }
                     continue;
                 }
                 if (Mathf.Max(collider.bounds.size.x, collider.bounds.size.z) > 700f)

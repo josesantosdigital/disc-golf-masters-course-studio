@@ -24,23 +24,49 @@ $nodeCommand = Get-Command node.exe -ErrorAction Stop
 $nodeVersion = & $nodeCommand.Source --version
 if ($LASTEXITCODE -ne 0) { throw 'Could not query the Node.js version.' }
 $localDotnet = Join-Path $projectRoot '.tools\dotnet\dotnet.exe'
-$dotnetCommand = if (Test-Path -LiteralPath $localDotnet -PathType Leaf) {
-    $localDotnet
-} else {
-    (Get-Command dotnet.exe -ErrorAction Stop).Source
+$dotnetCandidates = @()
+$pathDotnet = Get-Command dotnet.exe -ErrorAction SilentlyContinue
+if ($null -ne $pathDotnet) { $dotnetCandidates += $pathDotnet.Source }
+if (Test-Path -LiteralPath $localDotnet -PathType Leaf) { $dotnetCandidates += $localDotnet }
+$dotnetCommand = $null
+$dotnetSdkMajor = 0
+$legacyDotnet = $null
+foreach ($candidate in ($dotnetCandidates | Select-Object -Unique)) {
+    $candidateSdks = @(& $candidate --list-sdks)
+    if ($LASTEXITCODE -ne 0) { continue }
+    $stableMajorVersions = @($candidateSdks | ForEach-Object {
+        if ($_ -match '^(\d+)\.\d+\.\d+\s') { [int]$Matches[1] }
+    })
+    $currentSdk = $stableMajorVersions | Where-Object { $_ -ge 10 } | Sort-Object -Descending | Select-Object -First 1
+    if ($null -ne $currentSdk) {
+        $dotnetCommand = $candidate
+        $dotnetSdkMajor = [int]$currentSdk
+        break
+    }
+    if ($null -eq $legacyDotnet -and $stableMajorVersions -contains 6) { $legacyDotnet = $candidate }
 }
-$sdkList = @(& $dotnetCommand --list-sdks)
-if ($LASTEXITCODE -ne 0) { throw '.NET SDK discovery failed.' }
-if (-not ($sdkList | Where-Object { $_ -match '^6\.' })) {
-    throw 'The release preflight requires the .NET 6 SDK. Install it or place it under .tools\dotnet.'
+if ($null -eq $dotnetCommand -and $null -ne $legacyDotnet) {
+    $dotnetCommand = $legacyDotnet
+    $dotnetSdkMajor = 6
+}
+if ($null -eq $dotnetCommand) {
+    throw 'The release preflight requires a stable .NET 10-or-newer SDK (recommended) or .NET 6 SDK (legacy fallback).'
 }
 
 $previousCliHome = $env:DOTNET_CLI_HOME
 $previousSkipFirstTime = $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+$previousCheckEolTargetFramework = $env:CheckEolTargetFramework
+$previousRollForward = $env:DOTNET_ROLL_FORWARD
 $taskCliHome = Join-Path $projectRoot '.tools\cli-home'
 New-Item -ItemType Directory -Force -Path $taskCliHome | Out-Null
 $env:DOTNET_CLI_HOME = $taskCliHome
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
+if ($dotnetSdkMajor -ge 10) {
+    # Keep these pure checks on the plugin's net6.0 API surface. If .NET 6 is
+    # absent, use the current runtime for test execution.
+    $env:CheckEolTargetFramework = 'false'
+    $env:DOTNET_ROLL_FORWARD = 'Major'
+}
 
 function Invoke-PowerShellCheck([string]$Label, [string]$Path, [hashtable]$Parameters) {
     Write-Host "`n=== $Label ==="
@@ -78,7 +104,9 @@ try {
             'Tools\ImportedCoursePlannerChecks\ImportedCoursePlannerChecks.csproj',
             'Tools\CoursePreviewChecks\CoursePreviewChecks.csproj',
             'Tools\PersonalBestChecks\PersonalBestChecks.csproj',
-            'Tools\FoliageGeometryChecks\FoliageGeometryChecks.csproj'
+            'Tools\FoliageGeometryChecks\FoliageGeometryChecks.csproj',
+            'Tools\ImportedTerrainIsolationChecks\ImportedTerrainIsolationChecks.csproj',
+            'Tools\ImportedLitMaterialChecks\ImportedLitMaterialChecks.csproj'
         )
         foreach ($checkProject in $checkProjects) {
             Invoke-ExternalCheck "Pure C# checks: $checkProject" $dotnetCommand @('run', '--project', $checkProject, '--configuration', 'Release')
@@ -103,6 +131,8 @@ try {
 finally {
     $env:DOTNET_CLI_HOME = $previousCliHome
     $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $previousSkipFirstTime
+    $env:CheckEolTargetFramework = $previousCheckEolTargetFramework
+    $env:DOTNET_ROLL_FORWARD = $previousRollForward
 }
 
 Write-Host "`nRelease preflight passed. Node.js: $nodeVersion. This checks offline behavior and disposable install fixtures; it does not start DGM or verify a clean real-game installation."

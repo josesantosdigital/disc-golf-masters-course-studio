@@ -28,7 +28,8 @@ function exportDocument() {
     baseLayout: draft.baseLayout || "", description: draft.description || "",
     courseCardImage: cleanId + "-hole-01.png", editorMapWidthMeters: state.mapWidth, holes: holes,
     mapPreviewImage: draft.mapPreviewImage || "", mapWorldBounds: draft.mapWorldBounds,
-    mapLighting: draft.mapLighting || defaultMapLighting()
+    mapLighting: draft.mapLighting || defaultMapLighting(),
+    layoutGroundColliderExclusions: draft.layoutGroundColliderExclusions || []
   };
   if (imported) documentData.mapScene = {
     scenePath: draft.mapScene.scenePath.trim(), bundlePath: draft.mapScene.bundlePath.replace(/\\/g, "/").trim(),

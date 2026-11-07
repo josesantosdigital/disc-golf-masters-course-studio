@@ -96,6 +96,7 @@ function makeCourse(courseId, layoutId) {
     baseCourse: base.id, baseLayout: layout ? layout.id : "",
     description: "A custom offline course on " + base.name + ".", courseCardImage: "", holes: [],
     sourceMode: "original", mapScene: null, mapPreviewImage: "", mapPreviewDataUrl: "",
+    layoutGroundColliderExclusions: [],
     mapWorldBounds: { minX: -100, maxX: 100, minZ: -100, maxZ: 100, groundY: 0 },
     mapLighting: defaultMapLighting(),
     editorMapWidthMeters: Math.max(200, Math.min(1200, Math.round(length * 0.34))),
@@ -113,6 +114,7 @@ function makeImportedMapCourse() {
   state.draft.description = "A custom offline course on an imported map scene.";
   state.draft.sourceMode = "imported";
   state.draft.mapScene = { scenePath: "", bundlePath: "", dependencyBundlePaths: [] };
+  state.draft.layoutGroundColliderExclusions = [];
   state.draft.mapWorldBounds = { minX: -100, maxX: 100, minZ: -100, maxZ: 100, groundY: 0 };
   state.draft.mapLighting = defaultMapLighting();
   state.draft.mapPreviewImage = "";
@@ -152,6 +154,7 @@ function normalizeCourse(value) {
     sourceMode: source.mapScene || source.sourceMode === "imported" ? "imported" : "original",
     mapScene: source.mapScene || source.sourceMode === "imported" ? Object.assign({ scenePath: "", bundlePath: "", dependencyBundlePaths: [] }, source.mapScene || {}) : null,
     mapPreviewImage: source.mapPreviewImage || "", mapPreviewDataUrl: source.mapPreviewDataUrl || "",
+    layoutGroundColliderExclusions: Array.isArray(source.layoutGroundColliderExclusions) ? source.layoutGroundColliderExclusions.slice(0, 8) : [],
     mapWorldBounds: Object.assign({ minX: -100, maxX: 100, minZ: -100, maxZ: 100, groundY: 0 }, source.mapWorldBounds || {}),
     mapLighting: Object.assign(defaultMapLighting(), source.mapLighting || {}, {
       ambientColor: Object.assign(defaultMapLighting().ambientColor, source.mapLighting && source.mapLighting.ambientColor || {}),

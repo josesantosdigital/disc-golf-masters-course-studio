@@ -2,7 +2,7 @@
 
 ## Confirmed development baseline
 
-This baseline is specific to the development PC and is not a minimum-version or compatibility promise. The last recorded installed build is 0.5.96 from 2026-11-06, compiled against the local DGM/BepInEx IL2CPP assemblies and installed while the game was closed. Source 0.5.101 has a successful local Release build and exact-archive offline preflight; it has not been installed or runtime-verified. The user controls all gameplay checks; do not launch DGM for release validation.
+This baseline is specific to the development PC and is not a minimum-version or compatibility promise. Version 0.5.102 is built and installed while DGM was closed. It adds a configurable auto-layout ground-collider exclusion and applies it to the 711 grass terrain; manual gameplay confirmation is pending. The user controls all gameplay checks; do not launch DGM for release validation.
 
 ## Historical baseline observations
 
@@ -19,11 +19,12 @@ The 0.5.24 Tree Land round produced user-confirmed shrub/leaf reactions and foli
 | Unity player | 6000.3.26f1 |
 | Imported BONELAB bundle versions | All 11 scene/dependency bundles for Teeny Tiny Isle, 711 DGC, Milsim Forest, and Southside report Unity 2021.3.16f1 in their UnityFS headers, while DGM uses 6000.3.26f1. This is the older-bundle/newer-player direction; Unity documents TypeTree-based backward compatibility for many assets, but substantial feature changes can still fail and per-course runtime compatibility remains unverified. |
 | BepInEx | 6.0.0-be.791, IL2CPP |
-| Managed runtime reported by BepInEx | .NET 6.0.7 |
+| Managed runtime reported by BepInEx | .NET 6.0.7; the plugin target remains net6.0 for this host |
+| SDK for current contributor checks | CI is configured for the supported .NET 10 SDK. The local .NET 6 SDK remains a legacy fallback for pure checks; the .NET 10 CI run has not yet been observed for this candidate |
 | Node.js used for the local editor server | 24.22.1 |
-| Current installed Course Studio DLL | 0.5.96, target framework net6.0; SHA-256 `9425D15237CE877FEA68D2474C755DE74445B1F75E9C5B5C78B9E16B8D85D5E7`; installed by atomic replacement while DGM was closed; the visual effect of the imported Lit shader migration is unverified |
+| Current installed Course Studio DLL | 0.5.102, target framework net6.0; SHA-256 `D4385A5FBC08DB86188F76DE44C3637E7EED3BCA71F948764110D913D7A40208`; built and installed while DGM was closed; 711 city placement needs a manual check |
 | Preserved rollback DLLs | 0.5.95 at `CustomCourseLoader/.tools/recovery/lighting-source-0.5.96-20261106/CustomCourseLoader.0.5.95.atomic-backup.dll`; earlier versions remain in versioned recovery folders |
-| Current source candidate | 0.5.101; Release build completed with zero warnings/errors and the 201-entry DRAFT passed the full offline preflight. The source includes the 0.5.96 imported-material lighting candidate and later course-selector/editor changes. No runtime or visual verification for this candidate yet |
+| Current source candidate | 0.5.102; Release build succeeded with zero warnings/errors. The previous 0.5.101 release preflight remains historical evidence. The 711 layout filter and Course Studio field are not yet runtime-verified |
 | Most recent imported-map run | On 0.5.95, the user confirmed the city-top snap is fixed. Previously, Southside Hole 2 and Tiny Isle city throws were snapping to the city roof/top. The shared terrain-mapper isolation change applies to future imports. The user also reports an intense white glare in Southside Hole 2; the 0.5.96 rendering candidate needs manual checking for glare, textures, cutout leaves, and glass |
 | Latest BepInEx log | Available runtime logs predate the 0.5.96 install and must not be treated as visual evidence for its shader migration. The latest user-confirmed behavior is from 0.5.95. Keep gameplay verification manual; do not launch DGM |
 | Built-in catalog evidence | 0.5.22 startup exported 3 original courses with 11 layouts |
@@ -43,7 +44,7 @@ The project currently documents this one verified build target. It does not clai
 - BepInEx 6 IL2CPP installed separately in the game folder. Course Studio does not bundle BepInEx, Harmony, Unity interop assemblies, or game files.
 - A desktop browser to use the local Course Editor.
 - Node.js to start the editor's local loopback server. Node 24.22.1 was observed on the development PC; older versions are unverified.
-- For authoring/building from source: .NET 6 SDK, Windows PowerShell, and a local DGM/BepInEx installation whose assemblies are used as build references.
+- For authoring/building from source: .NET 10 SDK recommended (or .NET 6 SDK as a legacy fallback), Windows PowerShell, and a local DGM/BepInEx installation whose assemblies are used as build references. The plugin remains targeted at net6.0 to match the observed game host; using the .NET 10 SDK does not change that runtime target.
 - For imported maps: a PC Unity scene AssetBundle, its exact `.unity` scene path, dependencies, and platform/Unity serialization that the installed DGM player can load.
 
 The BONELAB adapter targets **PC** pallets. It packages the source scene and selected dependencies; it does not rebuild the content for DGM or translate BONELAB course data. Quest-only bundles have not been verified in DGM's Windows player; other game-specific archive formats need a separate adapter.

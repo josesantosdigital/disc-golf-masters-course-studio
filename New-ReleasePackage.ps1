@@ -37,7 +37,13 @@ if (Test-Path -LiteralPath $archivePath) { throw "Release archive already exists
 New-Item -ItemType Directory -Force -Path $outputFull | Out-Null
 
 $localDotnet = Join-Path $projectRoot '.tools\dotnet\dotnet.exe'
-$dotnetCommand = if (Test-Path -LiteralPath $localDotnet) { $localDotnet } else { 'dotnet' }
+$pathDotnet = Get-Command dotnet.exe -ErrorAction SilentlyContinue
+$pathHasCurrentSdk = $false
+if ($null -ne $pathDotnet) {
+    $pathSdkList = @(& $pathDotnet.Source --list-sdks)
+    $pathHasCurrentSdk = @($pathSdkList | Where-Object { $_ -match '^(10|[1-9]\d)\.\d+\.\d+\s' }).Count -gt 0
+}
+$dotnetCommand = if ($pathHasCurrentSdk) { $pathDotnet.Source } elseif (Test-Path -LiteralPath $localDotnet) { $localDotnet } elseif ($null -ne $pathDotnet) { $pathDotnet.Source } else { throw 'Install the .NET 10 SDK or place the legacy .NET 6 SDK under .tools\dotnet.' }
 $taskDotnetCliHome = Join-Path $projectRoot '.tools\cli-home'
 New-Item -ItemType Directory -Force -Path $taskDotnetCliHome | Out-Null
 $previousDotnetCliHome = $env:DOTNET_CLI_HOME
@@ -47,7 +53,7 @@ try {
     $env:DOTNET_CLI_HOME = $taskDotnetCliHome
     $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
     $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
-    & $dotnetCommand build (Join-Path $projectRoot 'CustomCourseLoader.csproj') --configuration Release "-p:GameRoot=$gameRootFull"
+    & $dotnetCommand build (Join-Path $projectRoot 'CustomCourseLoader.csproj') --configuration Release "-p:GameRoot=$gameRootFull" '-p:CheckEolTargetFramework=false'
     if ($LASTEXITCODE -ne 0) { throw "Release build failed with exit code $LASTEXITCODE." }
 }
 finally {

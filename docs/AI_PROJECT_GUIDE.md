@@ -68,16 +68,22 @@ For the full offline preflight, run the project script below before release. It 
 
 ~~~powershell
 # Compile only; references the local game installation.
-# Prefer the ignored project-local .NET 6 SDK when present, otherwise use .NET 6 on PATH.
+# Prefer a current stable SDK on PATH; otherwise fall back to the local .NET 6 SDK.
 # Keep first-use CLI files under ignored .tools instead of the host user's profile.
 $dotnetCliDataRoot = Join-Path (Get-Location) '.tools\cli-home'
 New-Item -ItemType Directory -Path $dotnetCliDataRoot -Force | Out-Null
 $env:DOTNET_CLI_HOME = $dotnetCliDataRoot
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
 $localDotnet = Join-Path (Get-Location) '.tools\dotnet\dotnet.exe'
-$dotnetCommand = if (Test-Path $localDotnet) { $localDotnet } else { (Get-Command dotnet -ErrorAction Stop).Source }
+$pathDotnet = Get-Command dotnet.exe -ErrorAction SilentlyContinue
+$pathHasCurrentSdk = $false
+if ($null -ne $pathDotnet) {
+  $pathSdkList = @(& $pathDotnet.Source --list-sdks)
+  $pathHasCurrentSdk = @($pathSdkList | Where-Object { $_ -match '^(10|[1-9]\d)\.\d+\.\d+\s' }).Count -gt 0
+}
+$dotnetCommand = if ($pathHasCurrentSdk) { $pathDotnet.Source } elseif (Test-Path -LiteralPath $localDotnet) { $localDotnet } elseif ($null -ne $pathDotnet) { $pathDotnet.Source } else { throw 'Install the .NET 10 SDK or place the legacy .NET 6 SDK under .tools\dotnet.' }
 $gameRoot = 'C:\Games\Disc Golf Masters'
-& $dotnetCommand build .\CustomCourseLoader.csproj -c Release "-p:GameRoot=$gameRoot"
+& $dotnetCommand build .\CustomCourseLoader.csproj -c Release "-p:GameRoot=$gameRoot" "-p:CheckEolTargetFramework=false"
 
 # Install into the selected game folder. Preserves installed courses and generated catalog/previews.
 .\build.ps1 -GameRoot $gameRoot

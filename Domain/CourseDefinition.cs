@@ -41,6 +41,9 @@ internal sealed class CourseDefinition
     [JsonPropertyName("mapWorldBounds")]
     public MapWorldBoundsDefinition MapWorldBounds { get; init; }
 
+    [JsonPropertyName("layoutGroundColliderExclusions")]
+    public List<string> LayoutGroundColliderExclusions { get; init; } = new();
+
     [JsonPropertyName("mapLighting")]
     public MapLightingDefinition MapLighting { get; init; } = new();
 
@@ -82,6 +85,8 @@ internal sealed class CourseDefinition
             throw new InvalidDataException("autoLayout requires an imported map with no explicit tee or basket positions.");
         if (!float.IsFinite(WaterLandingClearanceMeters) || WaterLandingClearanceMeters is < 0f or > 25f)
             throw new InvalidDataException("waterLandingClearanceMeters must be between 0 and 25 meters.");
+        if (LayoutGroundColliderExclusions == null || LayoutGroundColliderExclusions.Count > 8 || LayoutGroundColliderExclusions.Any(name => string.IsNullOrWhiteSpace(name) || name.Length > 64))
+            throw new InvalidDataException("layoutGroundColliderExclusions must contain at most eight non-empty names of 64 characters or fewer.");
 
         ValidateImageName(CourseCardImage, "courseCardImage");
         for (var i = 0; i < Holes.Count; i++)

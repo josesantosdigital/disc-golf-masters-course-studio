@@ -90,6 +90,13 @@ function setImportedMapBounds() {
   }
   state.draft.mapWorldBounds = bounds; renderEditor(); saveState();
 }
+function setLayoutGroundColliderExclusions() {
+  const values = byId("layout-ground-collider-exclusions").value.split(",").map(function (item) { return item.trim(); }).filter(Boolean);
+  if (values.length > 8 || values.some(function (item) { return item.length > 64; })) {
+    toast("Use up to eight collider-name fragments, each no longer than 64 characters."); renderEditor(); return;
+  }
+  state.draft.layoutGroundColliderExclusions = values; saveState();
+}
 function colorToHex(color) {
   const channel = function (value) { return Math.round(clamp(Number(value) || 0, 0, 1) * 255).toString(16).padStart(2, "0"); };
   return "#" + channel(color && color.r) + channel(color && color.g) + channel(color && color.b);

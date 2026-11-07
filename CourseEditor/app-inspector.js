@@ -28,6 +28,7 @@ function renderEditor() {
     byId("world-min-x").value = bounds.minX; byId("world-max-x").value = bounds.maxX;
     byId("world-min-z").value = bounds.minZ; byId("world-max-z").value = bounds.maxZ;
     byId("world-ground-y").value = bounds.groundY;
+    byId("layout-ground-collider-exclusions").value = (state.draft.layoutGroundColliderExclusions || []).join(", ");
     const lighting = state.draft.mapLighting || defaultMapLighting();
     byId("map-ambient-color").value = colorToHex(lighting.ambientColor);
     byId("map-ambient-intensity").value = lighting.ambientIntensity;

@@ -28,15 +28,15 @@ The loader uses DGM's gameplay objects for hole behavior and scoring. It does no
 
 ## Local build
 
-Build against a local Disc Golf Masters installation with BepInEx 6 IL2CPP interop assemblies:
+Build against a local Disc Golf Masters installation with BepInEx 6 IL2CPP interop assemblies. The plugin stays on `net6.0` to match the game's observed .NET 6 host. Use the current .NET 10 SDK for source work; the SDK can target this older framework. The explicit property below suppresses only the SDK's out-of-support target warning and does not change the plugin's runtime target.
 
 ~~~powershell
 $gameRoot = 'C:\Games\Disc Golf Masters'
-dotnet build .\CustomCourseLoader.csproj -c Release "-p:GameRoot=$gameRoot"
+dotnet build .\CustomCourseLoader.csproj -c Release "-p:GameRoot=$gameRoot" "-p:CheckEolTargetFramework=false"
 ~~~
 
 Run the command from the source project folder and replace `$gameRoot` with your Disc Golf Masters installation. A release archive stores source under `Source/CustomCourseLoader`, separate from the game folder, so pass the actual game path explicitly. Players should run the archive-root `Install-CourseStudio.ps1`; it updates the plugin/editor while preserving player courses, maps, generated catalogs/previews, and personal-best data. Contributors may use `.\build.ps1 -GameRoot $gameRoot` to build and install from source. Use `.\New-ReleasePackage.ps1 -Draft -GameRoot $gameRoot` to build, inspect, and audit a review archive. Public packaging remains gated on the open release checks and third-party distribution review. See [release checklist](docs/RELEASE_CHECKLIST.md).
 
 ## Release status
 
-Course Studio is in active development. Version 0.5.101 is the current source candidate; it is not a public release. Any DRAFT archive is for local review only and must not be redistributed. Public release remains gated on clean-install and editor/gameplay acceptance by the player, imported-map acceptance, and qualified review of the LGPL-linked dependencies. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages.
+Course Studio is in active development. Version 0.5.102 is the current source candidate; it is not a public release. Any DRAFT archive is for local review only and must not be redistributed. Public release remains gated on clean-install and editor/gameplay acceptance by the player, imported-map acceptance, and qualified review of the LGPL-linked dependencies. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages.

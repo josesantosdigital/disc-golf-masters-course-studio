@@ -30,6 +30,7 @@ function bindEvents() {
   ["world-min-x", "world-max-x", "world-min-z", "world-max-z", "world-ground-y"].forEach(function (id) {
     byId(id).addEventListener("change", setImportedMapBounds);
   });
+  byId("layout-ground-collider-exclusions").addEventListener("change", setLayoutGroundColliderExclusions);
   ["map-force-unlit", "map-realtime-shadows", "map-hide-particles", "map-tree-canopy-collisions", "map-foliage-interactions", "map-game-foliage", "map-lit-foliage", "map-base-sun", "map-preserve-lightmaps", "map-disable-occlusion", "map-repair-terrain-materials", "map-repair-terrain-details", "map-force-tree-mesh-lods", "map-albedo-brightness", "map-local-light-multiplier", "map-ambient-color", "map-ambient-intensity", "map-key-color", "map-key-intensity", "map-key-yaw", "map-key-pitch"].forEach(function (id) {
     byId(id).addEventListener("change", setImportedMapLighting);
   });

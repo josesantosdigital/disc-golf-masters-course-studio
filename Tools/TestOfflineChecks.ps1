@@ -5,15 +5,33 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $node = (Get-Command node.exe -ErrorAction Stop).Source
 $localDotnet = Join-Path $projectRoot '.tools\dotnet\dotnet.exe'
-$dotnet = if (Test-Path -LiteralPath $localDotnet -PathType Leaf) {
-    $localDotnet
+$dotnetCandidates = @()
+$pathDotnet = Get-Command dotnet.exe -ErrorAction SilentlyContinue
+if ($null -ne $pathDotnet) { $dotnetCandidates += $pathDotnet.Source }
+if (Test-Path -LiteralPath $localDotnet -PathType Leaf) { $dotnetCandidates += $localDotnet }
+$dotnet = $null
+$dotnetSdkMajor = 0
+$legacyDotnet = $null
+foreach ($candidate in ($dotnetCandidates | Select-Object -Unique)) {
+    $candidateSdks = @(& $candidate --list-sdks)
+    if ($LASTEXITCODE -ne 0) { continue }
+    $stableMajorVersions = @($candidateSdks | ForEach-Object {
+        if ($_ -match '^(\d+)\.\d+\.\d+\s') { [int]$Matches[1] }
+    })
+    $currentSdk = $stableMajorVersions | Where-Object { $_ -ge 10 } | Sort-Object -Descending | Select-Object -First 1
+    if ($null -ne $currentSdk) {
+        $dotnet = $candidate
+        $dotnetSdkMajor = [int]$currentSdk
+        break
+    }
+    if ($null -eq $legacyDotnet -and $stableMajorVersions -contains 6) { $legacyDotnet = $candidate }
 }
-else {
-    (Get-Command dotnet.exe -ErrorAction Stop).Source
+if ($null -eq $dotnet -and $null -ne $legacyDotnet) {
+    $dotnet = $legacyDotnet
+    $dotnetSdkMajor = 6
 }
-$sdks = @(& $dotnet --list-sdks)
-if ($LASTEXITCODE -ne 0 -or -not ($sdks | Where-Object { $_ -match '^6\.' })) {
-    throw 'Offline checks require Node.js and the .NET 6 SDK.'
+if ($null -eq $dotnet) {
+    throw 'Offline checks require Node.js and a stable .NET 10-or-newer SDK (recommended) or .NET 6 SDK (legacy fallback).'
 }
 
 $taskTempRoot = Join-Path ([IO.Path]::GetTempPath()) ('dgm-course-studio-offline-' + [Guid]::NewGuid().ToString('N'))
@@ -28,11 +46,20 @@ $previousSkipFirstTime = $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE
 $previousTelemetryOptOut = $env:DOTNET_CLI_TELEMETRY_OPTOUT
 $previousNoLogo = $env:DOTNET_NOLOGO
 $previousNugetPackages = $env:NUGET_PACKAGES
+$previousCheckEolTargetFramework = $env:CheckEolTargetFramework
+$previousRollForward = $env:DOTNET_ROLL_FORWARD
 $env:DOTNET_CLI_HOME = Join-Path $taskTempFull 'dotnet-home'
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 $env:DOTNET_NOLOGO = '1'
 $env:NUGET_PACKAGES = Join-Path $taskTempFull 'nuget-packages'
+if ($dotnetSdkMajor -ge 10) {
+    # Keep these checks on the plugin's net6.0 API surface. On clean CI, build
+    # against its down-level reference pack and use the current runtime only
+    # when a .NET 6 runtime is unavailable.
+    $env:CheckEolTargetFramework = 'false'
+    $env:DOTNET_ROLL_FORWARD = 'Major'
+}
 
 function Invoke-ProjectScript([string]$RelativePath, [hashtable]$Parameters = @{}) {
     $path = Join-Path $projectRoot $RelativePath
@@ -92,7 +119,9 @@ try {
             'Tools\ImportedCoursePlannerChecks\ImportedCoursePlannerChecks.csproj',
             'Tools\CoursePreviewChecks\CoursePreviewChecks.csproj',
             'Tools\PersonalBestChecks\PersonalBestChecks.csproj',
-            'Tools\FoliageGeometryChecks\FoliageGeometryChecks.csproj'
+            'Tools\FoliageGeometryChecks\FoliageGeometryChecks.csproj',
+            'Tools\ImportedTerrainIsolationChecks\ImportedTerrainIsolationChecks.csproj',
+            'Tools\ImportedLitMaterialChecks\ImportedLitMaterialChecks.csproj'
         )
         foreach ($checkProject in $checkProjects) {
             Invoke-Native "Pure C# checks: $checkProject" $dotnet @('run', '--project', $checkProject, '--configuration', 'Release')
@@ -108,6 +137,8 @@ finally {
     $env:DOTNET_CLI_TELEMETRY_OPTOUT = $previousTelemetryOptOut
     $env:DOTNET_NOLOGO = $previousNoLogo
     $env:NUGET_PACKAGES = $previousNugetPackages
+    $env:CheckEolTargetFramework = $previousCheckEolTargetFramework
+    $env:DOTNET_ROLL_FORWARD = $previousRollForward
     if (Test-Path -LiteralPath $taskTempFull) {
         $resolvedTemp = [IO.Path]::GetFullPath($taskTempFull)
         if (-not $resolvedTemp.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) {
