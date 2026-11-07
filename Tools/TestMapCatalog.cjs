@@ -6,7 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const vm = require("node:vm");
 const test = require("node:test");
-const { listInstalledMaps } = require("../CourseEditor/map-catalog");
+const { listInstalledMaps, deleteInstalledMap } = require("../CourseEditor/map-catalog");
 const authoringWarnings = vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../CourseEditor/app-library.js"), "utf8") + "\ninstalledMapAuthoringWarnings", {});
 
 test("map catalog lists configured, orphaned, and repairable map packages", async function () {
@@ -94,6 +94,64 @@ test("map catalog lists configured, orphaned, and repairable map packages", asyn
     assert.equal(orphan.configured, false);
     assert.equal(maps.some(function (map) { return map.bundlePath.endsWith("shared.bundle"); }), false,
       "dependency bundles are not shown as standalone maps");
+  } finally {
+    const tempBase = path.resolve(os.tmpdir()) + path.sep;
+    const cleanupTarget = path.resolve(tempRoot);
+    if (!cleanupTarget.startsWith(tempBase)) throw new Error("Refusing to remove a path outside the system temp directory.");
+    fs.rmSync(cleanupTarget, { recursive: true, force: true });
+  }
+});
+
+test("map deletion removes only unshared course files and bundles", async function () {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dgm-map-delete-"));
+  try {
+    const pluginRoot = path.join(tempRoot, "CustomCourseLoader");
+    const courseFiles = path.join(pluginRoot, "Courses");
+    const mapsRoot = path.join(pluginRoot, "Maps");
+    const editorRoot = path.join(pluginRoot, "CourseEditor");
+    const selectedScene = path.join(mapsRoot, "one", "scene.bundle");
+    const sharedBundle = path.join(mapsRoot, "shared", "shared.bundle");
+    const otherScene = path.join(mapsRoot, "two", "scene.bundle");
+    fs.mkdirSync(courseFiles, { recursive: true });
+    fs.mkdirSync(path.dirname(selectedScene), { recursive: true });
+    fs.mkdirSync(path.dirname(sharedBundle), { recursive: true });
+    fs.mkdirSync(path.dirname(otherScene), { recursive: true });
+    fs.mkdirSync(path.join(editorRoot, "assets", "maps"), { recursive: true });
+    for (const file of [selectedScene, sharedBundle, otherScene]) fs.writeFileSync(file, "UnityFS fixture");
+
+    const selected = {
+      id: "map-one", name: "Map One", courseCardImage: "map-one-card.png", mapPreviewImage: "map-one-preview.png",
+      holes: [{ cardImage: "map-one-hole.png" }],
+      mapScene: { scenePath: "Assets/Maps/One.unity", bundlePath: "Maps/one/scene.bundle", dependencyBundlePaths: ["Maps/shared/shared.bundle"] }
+    };
+    const other = {
+      id: "map-two", name: "Map Two", courseCardImage: "shared-card.png", holes: [],
+      mapScene: { scenePath: "Assets/Maps/Two.unity", bundlePath: "Maps/two/scene.bundle", dependencyBundlePaths: ["Maps/shared/shared.bundle"] }
+    };
+    fs.writeFileSync(path.join(courseFiles, "map-one.json"), JSON.stringify(selected));
+    fs.writeFileSync(path.join(courseFiles, "map-two.json"), JSON.stringify(other));
+    for (const name of ["map-one-card.png", "map-one-preview.png", "map-one-hole.png", "shared-card.png"]) {
+      fs.writeFileSync(path.join(courseFiles, name), "image fixture");
+    }
+    const generatedPreview = path.join(editorRoot, "assets", "maps", "imported-map-one.png");
+    fs.writeFileSync(generatedPreview, "generated preview fixture");
+
+    const result = await deleteInstalledMap({ pluginRoot, courseFiles, mapsRoot, editorRoot }, {
+      courseFileName: "map-one.json", bundlePath: "Maps/one/scene.bundle"
+    });
+
+    assert.equal(result.name, "Map One");
+    assert.ok(result.deletedFiles.includes("Maps/one/scene.bundle"));
+    assert.ok(result.deletedFiles.includes("Courses/map-one.json"));
+    assert.deepEqual(result.keptSharedBundles, ["Maps/shared/shared.bundle"]);
+    for (const file of [selectedScene, path.join(courseFiles, "map-one.json"), path.join(courseFiles, "map-one-card.png"),
+      path.join(courseFiles, "map-one-preview.png"), path.join(courseFiles, "map-one-hole.png"), generatedPreview]) {
+      assert.equal(fs.existsSync(file), false, "selected map file should be removed: " + file);
+    }
+    for (const file of [sharedBundle, otherScene, path.join(courseFiles, "map-two.json"),
+      path.join(courseFiles, "shared-card.png")]) {
+      assert.equal(fs.existsSync(file), true, "other/shared map file should be preserved: " + file);
+    }
   } finally {
     const tempBase = path.resolve(os.tmpdir()) + path.sep;
     const cleanupTarget = path.resolve(tempRoot);

@@ -129,7 +129,7 @@ function renderInspector() {
       (isImportedMap() ? worldPositionFields(hole.mapTeePosition, "mapTeePosition", "teeYawDegrees") : offsetFields(hole.teeOffset, "teeOffset")) +
       '<div class="inspector-actions">' + (hole.teeEnabled === false ? '<button class="inspector-button primary" data-action="add-tee">＋ Add tee</button>' : '<button class="inspector-button danger" data-action="remove-tee">− Remove tee</button>') +
       '<button class="inspector-button" data-action="reset-tee">Reset position</button></div></div>' +
-      '<div class="note-box"><span>⌖</span><div>' + (isImportedMap() ? "Drag the green tee or enter its world X, height Y and Z. Tee yaw rotates from the tee-to-basket direction." : "Drag the green tee on the map. Height is measured in Unity meters above the original tee pad.") + '</div></div>';
+      '<div class="note-box"><span>⌖</span><div>' + (isImportedMap() ? "Drag the green tee or enter its world X, height Y and Z. If Y matches map ground Y, the game snaps it to nearby ground on load; enter a different Y to keep a deliberate elevation. Tee yaw rotates from the tee-to-basket direction." : "Drag the green tee on the map. Height is measured in Unity meters above the original tee pad.") + '</div></div>';
   } else if (state.inspector === "basket") {
     html = '<div class="inspector-block"><div class="inspector-head"><h3>Basket position</h3><small>HOLE ' + String(state.holeIndex + 1).padStart(2, "0") + '</small></div>' +
       switchRow("Basket marker", "Remove hides the basket art while keeping the game scoring trigger.", "basketEnabled", hole.basketEnabled !== false) +
@@ -137,7 +137,7 @@ function renderInspector() {
       (isImportedMap() ? worldPositionFields(hole.mapBasketPosition, "mapBasketPosition", "basketYawDegrees") : offsetFields(hole.basketOffset, "basketOffset")) +
       '<div class="inspector-actions">' + (hole.basketEnabled === false ? '<button class="inspector-button primary" data-action="add-basket">＋ Add basket</button>' : '<button class="inspector-button danger" data-action="remove-basket">− Remove basket</button>') +
       '<button class="inspector-button" data-action="reset-basket">Reset position</button></div></div>' +
-      '<div class="note-box"><span>◎</span><div>' + (isImportedMap() ? "Drag the amber basket or enter its world X, height Y and Z. Basket yaw is in world degrees." : "Drag the amber basket on the map. Height and angle are applied to its in-game transform.") + '</div></div>';
+      '<div class="note-box"><span>◎</span><div>' + (isImportedMap() ? "Drag the amber basket or enter its world X, height Y and Z. If Y matches map ground Y, the game snaps it to nearby ground on load; enter a different Y to keep a deliberate elevation. Basket yaw is in world degrees." : "Drag the amber basket on the map. Height and angle are applied to its in-game transform.") + '</div></div>';
   } else if (state.inspector === "ob") {
     const zones = Array.isArray(hole.obZones) ? hole.obZones : [];
     html = '<div class="inspector-block"><div class="inspector-head"><h3>OB limits</h3><small>' + zones.length + ' ZONES</small></div>' +

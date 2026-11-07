@@ -99,9 +99,10 @@ function renderInstalledMapExplorer(grid, query) {
     const authoringNote = authoringWarnings.length
       ? '<div class="installed-map-authoring-warnings"><b>AUTHORING CHECK</b>' + authoringWarnings.map(function (warning) { return '<span>' + escapeHtml(warning) + '</span>'; }).join("") + '</div>'
       : '';
+    const deleteAction = '<button class="inspector-button danger" data-map-action="delete" data-map-index="' + index + '" aria-label="Delete ' + escapeAttr(map.name) + '">Delete map</button>';
     const actions = map.courseFileName
-      ? '<div class="installed-map-actions"><button class="inspector-button primary" data-map-action="edit" data-map-index="' + index + '">Edit course</button><button class="inspector-button" data-map-action="new" data-map-index="' + index + '">New layout</button></div>'
-      : '<div class="installed-map-actions"><button class="inspector-button primary" data-map-action="setup" data-map-index="' + index + '">Set up course</button></div>';
+      ? '<div class="installed-map-actions"><button class="inspector-button primary" data-map-action="edit" data-map-index="' + index + '">Edit course</button><button class="inspector-button" data-map-action="new" data-map-index="' + index + '">New layout</button>' + deleteAction + '</div>'
+      : '<div class="installed-map-actions"><button class="inspector-button primary" data-map-action="setup" data-map-index="' + index + '">Set up course</button>' + deleteAction + '</div>';
     return '<article class="installed-map-card"><div class="course-card-art">' + art + '<span class="course-card-stamp"><i></i> ' + escapeHtml(status) + '</span></div>' +
       '<div class="course-card-body"><div class="installed-map-heading"><h3>' + escapeHtml(map.name) + '</h3><span class="map-status ' + statusClass + '">' + escapeHtml(status) + '</span></div>' +
       '<div class="installed-map-meta">' + metadata + '</div><div class="installed-map-path" title="' + escapeAttr(map.bundlePath || map.courseFileName) + '">' + escapeHtml(map.scenePath || (map.legacyApi ? "Installed course package" : "Scene path not set")) + '</div><div class="installed-map-issue ' + statusClass + '">' + escapeHtml(issue) + '</div>' + authoringNote + actions + '</div></article>';
@@ -113,9 +114,35 @@ function renderInstalledMapExplorer(grid, query) {
       if (!map) return;
       if (button.dataset.mapAction === "edit") openInstalledCourse(map.courseFileName);
       else if (button.dataset.mapAction === "new") createLayoutOnInstalledMap(map);
+      else if (button.dataset.mapAction === "delete") deleteInstalledMapFromExplorer(map, button);
       else setupInstalledBundle(map);
     });
   });
+}
+async function deleteInstalledMapFromExplorer(map, button) {
+  const message = 'Delete "' + map.name + '" from Installed maps?\n\nThis removes its course file and map bundles that no other course uses. Shared bundles and images referenced by another course will be kept. This can’t be undone.';
+  if (!window.confirm(message)) return;
+
+  button.disabled = true;
+  button.textContent = "Deleting…";
+  try {
+    const response = await fetch("/api/maps", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ courseFileName: map.courseFileName || "", bundlePath: map.bundlePath || "" })
+    });
+    let result = {};
+    try { result = await response.json(); } catch (error) { }
+    if (!response.ok) throw new Error(result.error || "The map could not be deleted.");
+    toast('Deleted "' + (result.name || map.name) + '" from Installed maps.');
+    await loadInstalledMaps();
+  } catch (error) {
+    if (button.isConnected) {
+      button.disabled = false;
+      button.textContent = "Delete map";
+    }
+    toast(error.message || "The map could not be deleted.");
+  }
 }
 function installedMapHealth(map) {
   if (!map.legacyApi && (!map.bundlePath || !map.bundleExists)) return "missing";

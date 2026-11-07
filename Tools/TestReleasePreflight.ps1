@@ -59,6 +59,7 @@ try {
         Invoke-PowerShellCheck 'Build/install preservation fixtures' (Join-Path $projectRoot 'Tools\TestBuildInstall.ps1') @{ ReferenceGameRoot = $referenceRootFull }
         Invoke-PowerShellCheck 'BONELAB and generic converter fixtures' (Join-Path $projectRoot 'Tools\TestCourseConverters.ps1') @{}
         Invoke-PowerShellCheck 'Course package validation fixtures' (Join-Path $projectRoot 'Tools\TestCoursePackageValidation.ps1') @{}
+        Invoke-PowerShellCheck 'Course mod package build/install fixtures' (Join-Path $projectRoot 'Tools\TestCourseModPackage.ps1') @{}
         Invoke-PowerShellCheck 'Bundled sample course' (Join-Path $projectRoot 'Tools\ValidateCoursePackage.ps1') @{
             CoursePath = (Join-Path $projectRoot 'Tools\Samples\SampleMeadowNine.json')
             PluginDirectory = (Join-Path $referenceRootFull 'BepInEx\plugins\CustomCourseLoader')

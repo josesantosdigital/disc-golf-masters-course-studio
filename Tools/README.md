@@ -75,6 +75,23 @@ The validator checks course schema limits, image references, safe paths, importe
 
 Run the isolated validation smoke checks with `.\Tools\TestCoursePackageValidation.ps1`. They create temporary fixtures outside the game folder and cover valid packages, malformed JSON, missing bundle/dependency/image files, invalid scene/dependency bundle headers, unsafe paths, and duplicate IDs.
 
+## Share a course as a separate ZIP
+
+`New-CourseModPackage.ps1` creates a versioned, checksummed ZIP for one course JSON and the card images it references. For a layout on a built-in DGM course:
+
+~~~powershell
+.\Tools\New-CourseModPackage.ps1 `
+  -CoursePath 'C:\Games\Disc Golf Masters\BepInEx\plugins\CustomCourseLoader\Courses\my-layout.json' `
+  -PluginDirectory 'C:\Games\Disc Golf Masters\BepInEx\plugins\CustomCourseLoader' `
+  -OutputPath 'C:\CoursePackages\my-layout-1.0.0.zip' `
+  -PackageVersion '1.0.0' `
+  -Author 'Your name'
+~~~
+
+For an imported course, add `-IncludeImportedAssets -AssetPermissionReference '<source URL or written permission record>'` only when redistribution of every included scene and dependency bundle is allowed. The manifest records the author's reference; it does not grant rights or establish that redistribution is permitted. If permission is absent or unclear, distribute the layout separately and point players to the original map source so they obtain compatible assets themselves.
+
+Recipients install Course Studio at the minimum version shown in the package README or newer, close DGM, extract the ZIP, and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Install-CourseModPackage.ps1 -GameRoot 'C:\Games\Disc Golf Masters'`. The installer checks hashes, course IDs, referenced images and bundles, refuses collisions unless `-Overwrite` is specified, and refuses to replace a bundle or image referenced by another course with different bytes. The archive includes only the selected course package and its referenced assets; it does not contain the loader or original DGM files. `Tools/TestCourseModPackage.ps1` runs synthetic ZIP creation, installation, collision, overwrite, shared-asset, hash-tampering, and imported-asset permission-gate checks.
+
 Run `.\Tools\TestCourseConverters.ps1` for repeatable converter fixtures. It converts both layout examples, checks current imported-map lighting settings, packages a synthetic Unity scene bundle, rejects invalid dependency headers, simulates a locked dependency during copy to confirm partial staging cleanup, exercises BONELAB PC pallet folder and ZIP inputs with nested Marrow catalogs, `PALLET_BARCODE` bundle IDs and scene variants, validates each output, and verifies JSON/card rollback after an invalid overwrite. Fixtures are synthetic and do not establish compatibility with real game maps or redistribution rights.
 
 Maintainer smoke checks also converted two user-provided, locally authorized BONELAB PC pallets (Tree Land and Hood Corner Day) in temporary folders. Their selected scene and dependency bundles matched the source bytes, starter cards were generated, package validation passed, and the temporary outputs were removed. This result covers those two pallets only; their assets are not included here or in release packages, and it does not test BONELAB course-layout extraction.

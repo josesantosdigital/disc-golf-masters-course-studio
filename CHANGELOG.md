@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.101 development
+- Remove `SoloConfiguration.GetCourses` entirely. The 0.5.100 test still reached the same fatal IL2CPP `AccessViolationException` in that method even though the postfix only queued work. Discover the selector through `CourseSelectionViewController.Awake` alongside the existing view setup/card hooks, so course selection no longer patches the crashing method. This requires a manual check that custom cards appear and that a hole can finish without a crash.
+
+## 0.5.100 development
+- Restore custom-course selector discovery after 0.5.99 stopped the list-attachment path. The `SoloConfiguration.GetCourses` Harmony postfix now only queues a flag; `CourseLoadingDriver.Update` performs selector lookup and course-entry registration on the next frame, outside the IL2CPP method callback. This preserves the selector trigger while avoiding the immediate Unity lookup and view mutation that ran inside `GetCourses`. Round-completion safety still needs manual confirmation.
+
+## 0.5.99 development
+- Remove the `SoloConfiguration.GetCourses` Harmony hook after a completed custom round crashed in the IL2CPP wrapper for that method. The crash log places the fault at the game's course-list call after the round-complete callback; the tee/basket ground snap completed successfully. Custom entries continue to register through the course-selection view hooks. This is a targeted mitigation, not yet confirmed as the crash cause; the next manual round should confirm both round completion and that custom entries still appear.
+
+## 0.5.98 development
+- Ground-snap explicit imported tee and basket positions when their height matches the map's default ground Y. This fixes Course Studio-created markers being placed at Y=0 inside raised terrain while preserving manually entered elevations; water, named building surfaces, triggers, and steep supports are filtered, and failed snaps are logged.
+
+## 0.5.97 development
+- Avoid constructing the game's invalid IL2CPP `LightmapData` array wrapper while repairing imported maps. The wrapper exception previously aborted the entire material-repair pass on Tree Land, leaving its source shaders and foliage broken; imported materials now continue through the configured repair path. Active lightmap count remains unavailable for diagnostics, while maps that clear lightmaps still clear every imported renderer index.
+
 ## 0.5.96 development
 - Port the recognized source `Universal Render Pipeline/Lit (PBR Workflow)` material family to DGM's loaded URP Lit shader even when the old shader reports device support. Southside still shows glare with all 175 local lights at zero and 185 base lights disabled; 1,484 materials use that old compiled PBR shader. Pipeline incompatibility is the lighting candidate, not yet a confirmed visual diagnosis.
 - Preserve common PBR textures, UV transforms, tint, emission, cutouts, culling, depth/blending and render queues. Remap compatible keywords; omit the source-specific packed detail layer. Leave water/custom shader families and explicit unlit/fallback rendering modes alone. Restore original materials during cleanup; log bounded conversion examples. No course JSON or asset bundle changes.

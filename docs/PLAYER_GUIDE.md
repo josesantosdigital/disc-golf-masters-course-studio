@@ -37,7 +37,7 @@ BepInEx/plugins/CustomCourseLoader/Maps/<course-id>
 
 ## Launch Course Studio
 
-Run `BepInEx/plugins/CustomCourseLoader/CourseEditor/Launch-Course-Editor.ps1`. It starts a local server bound to `127.0.0.1` and opens the editor in your browser. The server serves the editor and writes course files into this plugin folder; it does not upload course data to a remote service.
+Run `BepInEx/plugins/CustomCourseLoader/CourseEditor/Launch-Course-Editor.ps1`. It starts a local server bound to `127.0.0.1`, selects an available port, waits for the page to respond, and then opens the editor in your browser. If the browser does not open automatically, the launcher prints the working local address. The server serves the editor and writes course files into this plugin folder; it does not upload course data to a remote service.
 
 Choose **Original courses** to start from one of the game's built-in courses. Choose **Installed maps** to browse imported course packages in `Courses` and Unity scene bundles in `Maps`. The explorer also keeps packages with missing paths visible so you can open their JSON and repair the setup. Search by map, course ID, scene, or bundle path; use the status filter to narrow the list to ready maps, setup-needed packages, or missing files. Select **Scan maps** after adding bundles while Course Studio is open. Use **Edit course** to change a saved layout or **New layout** to create a variation.
 
@@ -61,6 +61,8 @@ Exporting a course with an existing ID replaces that course JSON and its generat
 For a custom layout on an original DGM course, share the course JSON and every course or hole-card image it references. The recipient needs Course Studio and the same built-in course, but no copy of DGM's map assets.
 
 For an imported map, the course JSON points to a scene bundle and any dependency bundles under `Maps`. Share those files only when the source author and applicable terms allow redistribution. Otherwise, share the source mod page, the scene name and path, and the course JSON separately. Each recipient must obtain their own compatible PC map files, convert or install them locally, and ensure the bundle paths in the JSON match their files. A source link by itself does not supply the scene bundle or grant redistribution rights.
+
+To package one course as its own ZIP, use `Tools/New-CourseModPackage.ps1` from a source checkout. It gathers that course's JSON, referenced card images, and (only when explicitly enabled) the imported scene and dependencies. Each course ZIP is independent, so authors can publish a loader/editor package and course packages separately. Recipients extract the ZIP and run its `Install-CourseModPackage.ps1` after installing Course Studio. Imported bundles should be included only with redistribution permission; the package's permission/source field is an author record, not proof of a license.
 
 Before posting, use a unique course ID and validate the package with `Tools/ValidateCoursePackage.ps1` when the tools are available. For a Discord post, include the course name and ID, base map or source page, hole count, required Course Studio version, and whether imported bundles may be redistributed. The BONELAB source links retained for Discord sharing are in the [porting guide](PORTING_GUIDE.md#bonelab-map-source-references).
 

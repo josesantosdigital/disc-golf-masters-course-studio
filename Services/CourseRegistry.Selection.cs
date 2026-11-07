@@ -13,29 +13,6 @@ internal sealed partial class CourseRegistry
             _activeCourseSelectionView = view;
     }
 
-    public void OnSoloCourseListRequested()
-    {
-        if (_activeCourseSelectionView != null)
-            return;
-
-        var now = Time.unscaledTime;
-        if (now < _nextCourseSelectionLookupTime)
-            return;
-        _nextCourseSelectionLookupTime = now + 1f;
-
-        var view = UnityEngine.Object.FindObjectOfType<CourseSelectionViewController>();
-        if (view == null)
-            return;
-
-        SetActiveCourseSelectionView(view);
-        if (!_loggedSoloCourseListHook)
-        {
-            _loggedSoloCourseListHook = true;
-            _log.LogInfo("Solo course list hook ran; attaching custom courses to the active selector.");
-        }
-        AppendCourseEntries(view);
-    }
-
     public void SetUpCourseSelection(CourseSelectionViewController view)
     {
         if (view == null)

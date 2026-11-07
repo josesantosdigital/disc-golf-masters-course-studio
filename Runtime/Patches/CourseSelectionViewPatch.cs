@@ -6,6 +6,27 @@ using UnityEngine.UI;
 
 namespace DgmCustomCourses;
 
+// Discover the selector through its Unity lifecycle, avoiding SoloConfiguration.GetCourses,
+// whose IL2CPP wrapper crashes even when its postfix only queues work.
+[HarmonyPatch(typeof(CourseSelectionViewController), "Awake")]
+internal static class CourseSelectionViewAwakePatch
+{
+    private static bool _loggedAwakeHook;
+
+    private static void Postfix(CourseSelectionViewController __instance)
+    {
+        if (__instance == null)
+            return;
+
+        if (!_loggedAwakeHook)
+        {
+            _loggedAwakeHook = true;
+            Plugin.LogSource.LogInfo("Offline course selector Awake hook ran; preparing custom course entries.");
+        }
+        Plugin.Registry.SetUpCourseSelection(__instance);
+    }
+}
+
 [HarmonyPatch(typeof(CourseSelectionViewController), "SetupCourseEntry")]
 internal static class CourseEntryViewPatch
 {

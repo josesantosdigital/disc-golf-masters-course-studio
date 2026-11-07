@@ -2,7 +2,7 @@
 
 ## Confirmed development baseline
 
-This baseline is specific to the development PC and is not a minimum-version or compatibility promise. As of 2026-11-06, the installed Course Studio loader is 0.5.96, compiled against the local DGM/BepInEx IL2CPP assemblies and installed while the game was closed. The user confirmed that the shared city-top physics fix from 0.5.95 works; 0.5.96 keeps it and adds an imported-material lighting candidate. The new shader migration has not been visually verified in game. Preserve manual gameplay checks for the user; no DGM session was started for this update.
+This baseline is specific to the development PC and is not a minimum-version or compatibility promise. The last recorded installed build is 0.5.96 from 2026-11-06, compiled against the local DGM/BepInEx IL2CPP assemblies and installed while the game was closed. Source 0.5.101 has a successful local Release build and exact-archive offline preflight; it has not been installed or runtime-verified. The user controls all gameplay checks; do not launch DGM for release validation.
 
 ## Historical baseline observations
 
@@ -23,7 +23,7 @@ The 0.5.24 Tree Land round produced user-confirmed shrub/leaf reactions and foli
 | Node.js used for the local editor server | 24.22.1 |
 | Current installed Course Studio DLL | 0.5.96, target framework net6.0; SHA-256 `9425D15237CE877FEA68D2474C755DE74445B1F75E9C5B5C78B9E16B8D85D5E7`; installed by atomic replacement while DGM was closed; the visual effect of the imported Lit shader migration is unverified |
 | Preserved rollback DLLs | 0.5.95 at `CustomCourseLoader/.tools/recovery/lighting-source-0.5.96-20261106/CustomCourseLoader.0.5.95.atomic-backup.dll`; earlier versions remain in versioned recovery folders |
-| Current source candidate | 0.5.96; Release compile succeeded with zero warnings/errors. Ports the recognized source URP Lit PBR family to DGM’s native URP Lit shader with common texture/PBR/cutout/blend state retained. Offline state/rollback checks passed; no runtime or visual verification yet |
+| Current source candidate | 0.5.101; Release build completed with zero warnings/errors and the 199-entry DRAFT passed the full offline preflight. The source includes the 0.5.96 imported-material lighting candidate and later course-selector/editor changes. No runtime or visual verification for this candidate yet |
 | Most recent imported-map run | On 0.5.95, the user confirmed the city-top snap is fixed. Previously, Southside Hole 2 and Tiny Isle city throws were snapping to the city roof/top. The shared terrain-mapper isolation change applies to future imports. The user also reports an intense white glare in Southside Hole 2; the 0.5.96 rendering candidate needs manual checking for glare, textures, cutout leaves, and glass |
 | Latest BepInEx log | Available runtime logs predate the 0.5.96 install and must not be treated as visual evidence for its shader migration. The latest user-confirmed behavior is from 0.5.95. Keep gameplay verification manual; do not launch DGM |
 | Built-in catalog evidence | 0.5.22 startup exported 3 original courses with 11 layouts |

@@ -74,8 +74,8 @@ For example, add `"autoLayout": "long"` to an imported course with `mapScene` an
 | `basketEnabled` | `true` | Show/hide basket art; scoring trigger behavior remains managed by DGM. |
 | `obZones` | `[]` | Up to 12 polygon zones, 3–64 points each. `right` and `forward` are meters in the hole's tee-relative horizontal frame. |
 | `cardImage` | empty | Optional per-hole PNG filename beside the course JSON. |
-| `mapTeePosition` | absent | Imported-map absolute Unity world position `{x,y,z}`. Supply alongside basket position. |
-| `mapBasketPosition` | absent | Imported-map absolute Unity world position `{x,y,z}`. Supply alongside tee position. |
+| `mapTeePosition` | absent | Imported-map absolute Unity world position `{x,y,z}`. Supply alongside basket position. If `y` matches `mapWorldBounds.groundY` (or the scene minimum when bounds are omitted), the loader snaps the marker to nearby valid ground at that X/Z; use a different Y for an intentional elevated placement. |
+| `mapBasketPosition` | absent | Imported-map absolute Unity world position `{x,y,z}`. Supply alongside tee position. If `y` matches `mapWorldBounds.groundY` (or the scene minimum when bounds are omitted), the loader snaps the marker to nearby valid ground at that X/Z; use a different Y for an intentional elevated placement. |
 
 Offsets and positions must be finite. PNG names must be simple `.png` filenames in the course folder; paths to parent folders are rejected. OB polygons and coordinates are bounded by loader validation.
 

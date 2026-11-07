@@ -679,6 +679,9 @@ internal static partial class CourseScenePatcher
             {
                 teePosition = new Vector3(holeDefinition.MapTeePosition.X, holeDefinition.MapTeePosition.Y, holeDefinition.MapTeePosition.Z);
                 basketPosition = new Vector3(holeDefinition.MapBasketPosition.X, holeDefinition.MapBasketPosition.Y, holeDefinition.MapBasketPosition.Z);
+                var preferredGroundY = custom.Definition.MapWorldBounds?.GroundY ?? mapBounds.min.y;
+                teePosition = SnapDefaultHeightMarkerToGround(mapScene, teePosition, preferredGroundY, custom.Definition.Name, i + 1, "tee");
+                basketPosition = SnapDefaultHeightMarkerToGround(mapScene, basketPosition, preferredGroundY, custom.Definition.Name, i + 1, "basket");
             }
             else if (!TryPlaceGridHole(mapScene, mapBounds, custom.Definition.MapWorldBounds?.GroundY ?? mapBounds.min.y, i, out teePosition, out basketPosition))
             {
@@ -1471,6 +1474,58 @@ internal static partial class CourseScenePatcher
             found = true;
         }
         return found;
+    }
+
+    private static Vector3 SnapDefaultHeightMarkerToGround(Scene mapScene, Vector3 authoredPosition, float preferredGroundY, string courseName, int holeNumber, string markerName)
+    {
+        // Course Studio writes mapWorldBounds.groundY into new imported markers
+        // until the author sets a deliberate height. Ground those default-height
+        // positions at their own X/Z; leave manually elevated markers untouched.
+        if (Mathf.Abs(authoredPosition.y - preferredGroundY) > 0.05f)
+            return authoredPosition;
+
+        var origin = new Vector3(authoredPosition.x, preferredGroundY + 25f, authoredPosition.z);
+        var hits = Physics.RaycastAll(origin, Vector3.down, 50f);
+        var found = false;
+        var bestScore = float.PositiveInfinity;
+        var bestPoint = default(Vector3);
+        Collider bestCollider = null;
+        var waterHeight = float.NegativeInfinity;
+        for (var i = 0; i < hits.Length; i++)
+        {
+            var hit = hits[i];
+            var collider = hit.collider;
+            if (collider == null || collider.gameObject.scene.handle != mapScene.handle)
+                continue;
+
+            if (ImportedMapPhysicsSupport.HasWaterNameToken(collider.gameObject.name.ToLowerInvariant()))
+            {
+                waterHeight = Mathf.Max(waterHeight, hit.point.y);
+                continue;
+            }
+            if (collider.isTrigger || Vector3.Dot(hit.normal, Vector3.up) < 0.55f || IsNamedBuildingSurface(collider))
+                continue;
+            if (Mathf.Max(collider.bounds.size.x, collider.bounds.size.z) > 700f)
+                continue;
+
+            var score = Mathf.Abs(hit.point.y - preferredGroundY);
+            if (score > 20f || score >= bestScore)
+                continue;
+            bestScore = score;
+            bestPoint = hit.point;
+            bestCollider = collider;
+            found = true;
+        }
+
+        if (!found || bestPoint.y < waterHeight - 0.05f || ImportedMapPhysicsSupport.IsBelowWater(bestPoint))
+        {
+            Plugin.LogSource.LogWarning($"Could not ground the default-height {markerName} for '{courseName}' hole {holeNumber} at X={authoredPosition.x:F1}, Z={authoredPosition.z:F1}; retaining authored Y={authoredPosition.y:F1}. Set an explicit HEIGHT / Y in Course Studio if this placement is intentional.");
+            return authoredPosition;
+        }
+
+        var grounded = bestPoint + Vector3.up * 0.04f;
+        Plugin.LogSource.LogInfo($"Ground-snapped imported {markerName} for '{courseName}' hole {holeNumber}: authored=({authoredPosition.x:F1},{authoredPosition.y:F1},{authoredPosition.z:F1}), placed=({grounded.x:F1},{grounded.y:F1},{grounded.z:F1}), support='{bestCollider.name}'.");
+        return grounded;
     }
 
     private static void AddObZones(HoleSettings hole, TransformSnapshot teeStart, IReadOnlyList<ObZoneDefinition> zones)

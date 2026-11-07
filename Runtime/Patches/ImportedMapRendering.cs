@@ -290,10 +290,14 @@ internal static partial class CourseScenePatcher
         var hiddenParticleCount = 0;
         var hiddenLightVolumeCount = 0;
         var hiddenSkyboxMeshCount = 0;
-        // PreserveLightmaps means these references must remain untouched. Avoid
-        // traversing Unity's IL2CPP LightmapData array in that mode; its wrapper
-        // can throw before the remaining imported rendering fixes run.
-        var activeLightmapCount = lighting.PreserveLightmaps ? -1 : TryGetActiveLightmapCount(courseName);
+        // Do not access LightmapSettings.lightmaps here. On the game's IL2CPP
+        // runtime, constructing its Il2CppReferenceArray<LightmapData> wrapper
+        // can throw before a try/catch in a helper is entered, aborting all
+        // remaining material repairs. When lightmaps are not preserved, every
+        // imported renderer's lightmap indices are cleared below regardless, so
+        // the count is only diagnostic. When preserved, avoid judging indices
+        // without a safely readable active-lightmap count.
+        var activeLightmapCount = -1;
         var lightmapRendererReadWarningLogged = false;
         var invalidLightmapRendererCount = 0;
         var invalidLightmapExamples = new List<string>();
@@ -974,21 +978,6 @@ internal static partial class CourseScenePatcher
 
         Plugin.LogSource.LogInfo($"Applied imported local-light multiplier before material repair in '{courseName}': adjusted {adjustedCount} point/spot light(s), intensity x{lighting.LocalLightIntensityMultiplier:F2}.");
         return adjustedCount;
-    }
-
-    private static int TryGetActiveLightmapCount(string courseName)
-    {
-        try
-        {
-            var lightmaps = LightmapSettings.lightmaps;
-            return lightmaps == null ? 0 : lightmaps.Length;
-        }
-        catch (Exception ex)
-        {
-            Plugin.LogSource.LogWarning(
-                $"Could not inspect active lightmap data for imported map '{courseName}'; preserving nonnegative source indices and continuing renderer repair: {ex.Message}");
-            return -1;
-        }
     }
 
     private static void LogImportedTextMeshReferences(Scene scene, string courseName)

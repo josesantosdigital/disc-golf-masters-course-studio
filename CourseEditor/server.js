@@ -3,7 +3,7 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
-const { listInstalledMaps } = require("./map-catalog");
+const { listInstalledMaps, deleteInstalledMap } = require("./map-catalog");
 
 const root = path.resolve(__dirname);
 const configuredPluginRoot = process.env.DGM_COURSE_EDITOR_PLUGIN_DIR;
@@ -81,8 +81,52 @@ const server = http.createServer(function (request, response) {
     return;
   }
 
+  if (request.method === "DELETE" && pathname === "/api/maps") {
+    if (readOnly) {
+      response.writeHead(403, { "Content-Type": "application/json; charset=utf-8" })
+        .end(JSON.stringify({ error: "Course Studio server is in read-only mode." }));
+      return;
+    }
+    const chunks = [];
+    let bodyLength = 0;
+    let oversized = false;
+    request.on("data", function (chunk) {
+      bodyLength += chunk.length;
+      if (bodyLength > 16384) oversized = true;
+      else chunks.push(chunk);
+    });
+    request.on("end", function () {
+      if (oversized) {
+        response.writeHead(413, { "Content-Type": "application/json; charset=utf-8" })
+          .end(JSON.stringify({ error: "The map deletion request is too large." }));
+        return;
+      }
+      let selection;
+      try { selection = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
+      catch (error) {
+        response.writeHead(400, { "Content-Type": "application/json; charset=utf-8" })
+          .end(JSON.stringify({ error: "The map deletion request must contain valid JSON." }));
+        return;
+      }
+      deleteInstalledMap({ pluginRoot: pluginRoot, courseFiles: courseFiles, mapsRoot: mapsRoot, editorRoot: pluginEditorRoot }, selection)
+        .then(function (result) {
+          response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+          response.end(JSON.stringify(result));
+        })
+        .catch(function (error) {
+          response.writeHead(error.statusCode || 500, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+          response.end(JSON.stringify({ error: error.message || "The installed map could not be deleted." }));
+        });
+    });
+    request.on("error", function () {
+      if (!response.headersSent) response.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+      response.end(JSON.stringify({ error: "Could not read the map deletion request." }));
+    });
+    return;
+  }
+
   if (request.method !== "GET" && request.method !== "HEAD") {
-    response.writeHead(405, { "Allow": "GET, HEAD, PUT" }).end("Method not allowed");
+    response.writeHead(405, { "Allow": "GET, HEAD, PUT, DELETE" }).end("Method not allowed");
     return;
   }
 

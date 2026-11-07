@@ -14,11 +14,9 @@ internal sealed partial class CourseRegistry
     private readonly HashSet<string> _addedCourseEntries = new(StringComparer.OrdinalIgnoreCase);
     private CourseSelectionViewController _activeCourseSelectionView;
     private CourseSelectionViewController _scrollResetView;
-    private float _nextCourseSelectionLookupTime;
     private int _layoutRefreshFrames;
     private float _nextLayoutRefresh;
     private bool _scrollUserInteracted;
-    private bool _loggedSoloCourseListHook;
     private bool _loggedScrollReset;
     private CourseSelectionViewController _pendingCourseSelectionView;
     private readonly CourseSelectionLoadGate _selectionLoadGate = new();

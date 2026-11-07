@@ -158,10 +158,16 @@ function drawHolePlan(geometry) {
   ctx.strokeStyle = "rgba(184,239,114,.5)"; ctx.lineWidth = 1.2; ctx.setLineDash([5, 6]); ctx.stroke(); ctx.setLineDash([]);
   drawObZones(hole, geometry);
   if (state.pendingObPoints.length) {
+    const pending = state.pendingObPoints.map(function (point) { return nToScreen(point, geometry); });
+    if (pending.length >= 3) {
+      ctx.beginPath(); pending.forEach(function (point, index) { if (!index) ctx.moveTo(point.x, point.y); else ctx.lineTo(point.x, point.y); }); ctx.closePath();
+      ctx.fillStyle = "rgba(255,92,82,.24)"; ctx.fill();
+      ctx.strokeStyle = "rgba(255,130,119,.92)"; ctx.lineWidth = 2; ctx.setLineDash([7, 4]); ctx.stroke(); ctx.setLineDash([]);
+    }
     ctx.beginPath(); state.pendingObPoints.forEach(function (point, index) { const screen = nToScreen(point, geometry); if (!index) ctx.moveTo(screen.x, screen.y); else ctx.lineTo(screen.x, screen.y); });
     if (state.pointer && state.pointer.last) ctx.lineTo(state.pointer.last.x, state.pointer.last.y);
-    ctx.strokeStyle = "#ff8c83"; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.stroke(); ctx.setLineDash([]);
-    state.pendingObPoints.forEach(function (point) { drawObVertex(nToScreen(point, geometry)); });
+    ctx.strokeStyle = "#ff8c83"; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.stroke(); ctx.setLineDash([]);
+    pending.forEach(drawPendingObVertex);
   }
   const teeWorldYaw = 90 - mapHeading(hole) * 180 / Math.PI + (isImportedMap() ? 0 : Number(hole.teeYawDegrees) || 0);
   if (hole.teeEnabled !== false) drawTee(teePt, teeWorldYaw, state.selectedMarker === "tee");
@@ -224,6 +230,12 @@ function drawObVertex(point) {
   ctx.save(); ctx.fillStyle = "#ffd0cd"; ctx.strokeStyle = "#a3403b"; ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.arc(point.x, point.y, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore();
 }
+function drawPendingObVertex(point) {
+  ctx.save(); ctx.shadowColor = "rgba(255,91,80,.9)"; ctx.shadowBlur = 12;
+  ctx.fillStyle = "#ff655c"; ctx.strokeStyle = "#fff1ed"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(point.x, point.y, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 0; ctx.fillStyle = "#fff7f3"; ctx.beginPath(); ctx.arc(point.x, point.y, 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+}
 function drawMapLabel(point, text, color, side) {
   ctx.save(); ctx.font = "500 8px Consolas, monospace";
   const width = ctx.measureText(text).width + 12, x = point.x - width / 2, y = point.y + (side < 0 ? -25 : 16);
@@ -255,6 +267,8 @@ function startCalibration(type) {
 }
 function startDrawingOb() {
   state.drawingOb = true; state.calibrating = ""; state.pendingObPoints = [];
+  state.mapMode = "design";
+  document.querySelectorAll(".map-tab").forEach(function (button) { button.classList.toggle("active", button.dataset.mapMode === "design"); });
   byId("calibrate-tee").classList.remove("active"); byId("calibrate-basket").classList.remove("active");
   byId("draw-ob").classList.add("active"); byId("finish-ob").hidden = false; byId("ob-instruction").hidden = false;
   byId("map-tip").classList.add("complete"); state.inspector = "ob"; renderInspector(); paintMap();

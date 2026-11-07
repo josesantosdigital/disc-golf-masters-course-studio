@@ -22,6 +22,7 @@ Course Studio is a local course authoring tool and BepInEx 6 IL2CPP plugin for o
 - BONELAB PC packed-pallet folder or ZIP conversion through `Tools/ConvertBonelabPallet.ps1`.
 - Generic Unity AssetBundle packaging through `Tools/ConvertUnitySceneBundle.ps1`.
 - Cross-game course-layout conversion through the normalized JSON format in `Tools/Schemas/course-layout-interchange.schema.json`.
+- Separate per-course ZIP packaging for layouts and authorized imported map bundles through `Tools/New-CourseModPackage.ps1`.
 
 The loader uses DGM's gameplay objects for hole behavior and scoring. It does not author terrain, convert Unity assets between engine versions, or add multiplayer course support. See the [porting guide](docs/PORTING_GUIDE.md) for format and compatibility limits.
 
@@ -38,4 +39,4 @@ Run the command from the source project folder and replace `$gameRoot` with your
 
 ## Release status
 
-Course Studio is in active development. The current 0.5.96 build is a release candidate, not a public release. Draft packages are for local review only and must not be redistributed; remaining gates include qualified dependency-license review, clean-install and editor-flow acceptance, and user acceptance of imported-map rendering and gameplay. The 0.5.96 DRAFT archive is for local review only and is not redistributable. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages.
+Course Studio is in active development. Version 0.5.101 is the current source candidate; it is not a public release. Any DRAFT archive is for local review only and must not be redistributed. Public release remains gated on clean-install and editor/gameplay acceptance by the player, imported-map acceptance, and qualified review of the LGPL-linked dependencies. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages.
