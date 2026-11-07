@@ -2,7 +2,7 @@
 
 ## Confirmed development baseline
 
-This baseline is specific to the development PC and is not a minimum-version or compatibility promise. Version 0.5.102 is built and installed while DGM was closed. It adds a configurable auto-layout ground-collider exclusion and applies it to the 711 grass terrain; manual gameplay confirmation is pending. The user controls all gameplay checks; do not launch DGM for release validation.
+This baseline is specific to the development PC and is not a minimum-version or compatibility promise. Version 0.5.102 is built and installed while DGM was closed. It adds a configurable auto-layout ground-collider exclusion and uses configured map bounds for 711; gameplay confirmation is pending. The latest local BepInEx log starts loader 0.5.101 and predates that install, so it is not evidence for current 711 placement. The user controls all gameplay checks; do not launch DGM for release validation.
 
 ## Historical baseline observations
 
@@ -24,9 +24,9 @@ The 0.5.24 Tree Land round produced user-confirmed shrub/leaf reactions and foli
 | Node.js used for the local editor server | 24.22.1 |
 | Current installed Course Studio DLL | 0.5.102, target framework net6.0; SHA-256 `D4385A5FBC08DB86188F76DE44C3637E7EED3BCA71F948764110D913D7A40208`; built and installed while DGM was closed; 711 city placement needs a manual check |
 | Preserved rollback DLLs | 0.5.95 at `CustomCourseLoader/.tools/recovery/lighting-source-0.5.96-20261106/CustomCourseLoader.0.5.95.atomic-backup.dll`; earlier versions remain in versioned recovery folders |
-| Current source candidate | 0.5.102; Release build succeeded with zero warnings/errors. The previous 0.5.101 release preflight remains historical evidence. The 711 layout filter and Course Studio field are not yet runtime-verified |
-| Most recent imported-map run | On 0.5.95, the user confirmed the city-top snap is fixed. Previously, Southside Hole 2 and Tiny Isle city throws were snapping to the city roof/top. The shared terrain-mapper isolation change applies to future imports. The user also reports an intense white glare in Southside Hole 2; the 0.5.96 rendering candidate needs manual checking for glare, textures, cutout leaves, and glass |
-| Latest BepInEx log | Available runtime logs predate the 0.5.96 install and must not be treated as visual evidence for its shader migration. The latest user-confirmed behavior is from 0.5.95. Keep gameplay verification manual; do not launch DGM |
+| Current source candidate | 0.5.102; Release build succeeded with zero warnings/errors. The v17 DRAFT passes the full local release preflight using SDK 6.0.428. The .NET 10 GitHub Actions run and all 0.5.102 gameplay behavior remain unverified |
+| Most recent imported-map run | The latest available local log is a 0.5.101 711 session with whole-scene bounds and outer-grass candidate positions. The 0.5.102 DLL and course definition were installed later; no newer runtime log is present. On 0.5.95, the user confirmed the city-top snap fix. Southside glare, Tiny Isle water, and all current candidate map behavior still need manual checking |
+| Latest BepInEx log | `BepInEx/LogOutput.log` is timestamped before the 0.5.102 install and starts loader 0.5.101. Treat it only as historical evidence; it cannot verify the current layout filter. Keep gameplay verification manual; do not launch DGM |
 | Built-in catalog evidence | 0.5.22 startup exported 3 original courses with 11 layouts |
 | Failed map-load log | 0.5.18 |
 

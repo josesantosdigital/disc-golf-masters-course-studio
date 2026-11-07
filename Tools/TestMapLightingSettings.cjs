@@ -42,6 +42,36 @@ test("editing imported map settings serializes terrain and vegetation options", 
   assert.equal(saves, 1);
 });
 
+test("editing auto-layout ground exclusions saves trimmed collider-name fragments", function () {
+  const control = { value: " Terrain, Grass " };
+  let saves = 0;
+  const state = { draft: {} };
+  const context = vm.createContext({
+    state,
+    byId: id => id === "layout-ground-collider-exclusions" ? control : null,
+    saveState: () => saves++,
+    toast: () => { },
+    renderEditor: () => { }
+  });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../CourseEditor/app-settings.js"), "utf8"), context);
+  vm.runInContext("setLayoutGroundColliderExclusions()", context);
+  assert.deepEqual(Array.from(state.draft.layoutGroundColliderExclusions), ["Terrain", "Grass"]);
+  assert.equal(saves, 1);
+});
+
+test("auto-layout ground exclusions are loadable, editable, and wired to course export", function () {
+  const html = fs.readFileSync(path.join(__dirname, "../CourseEditor/index.html"), "utf8");
+  const inspector = fs.readFileSync(path.join(__dirname, "../CourseEditor/app-inspector.js"), "utf8");
+  const events = fs.readFileSync(path.join(__dirname, "../CourseEditor/app-events.js"), "utf8");
+  const files = fs.readFileSync(path.join(__dirname, "../CourseEditor/app-files.js"), "utf8");
+  const core = fs.readFileSync(path.join(__dirname, "../CourseEditor/app-core.js"), "utf8");
+  assert.equal((html.match(/id="layout-ground-collider-exclusions"/g) || []).length, 1);
+  assert.ok(inspector.includes('byId("layout-ground-collider-exclusions").value = (state.draft.layoutGroundColliderExclusions || []).join(", ");'));
+  assert.ok(events.includes('byId("layout-ground-collider-exclusions").addEventListener("change", setLayoutGroundColliderExclusions);'));
+  assert.ok(files.includes('layoutGroundColliderExclusions: draft.layoutGroundColliderExclusions || []'));
+  assert.ok(core.includes('Array.isArray(source.layoutGroundColliderExclusions) ? source.layoutGroundColliderExclusions.slice(0, 8) : []'));
+});
+
 test("terrain and vegetation controls are visible and wired through the editor", function () {
   const ids = [
     ["map-lit-foliage", "useLitFoliageMaterials"],

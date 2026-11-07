@@ -113,6 +113,7 @@ function makeState() {
           bundlePath: "Maps/export-fixture/scene.bundle",
           dependencyBundlePaths: [dependencyPath]
         },
+        layoutGroundColliderExclusions: ["Terrain"],
         mapLighting: { realtimeMapShadows: true }
       },
       mapWidth: 400,
@@ -230,6 +231,8 @@ test("Course Editor exports through direct install and both fallback flows", asy
     const dependencyPath = path.join(pluginRoot, direct.dependencyPath.replace(/\//g, path.sep));
     assert.ok(fs.existsSync(coursePath), "direct install writes course JSON");
     assert.ok(fs.existsSync(cardPath), "direct install writes the hole card");
+    assert.deepEqual(JSON.parse(fs.readFileSync(coursePath, "utf8")).layoutGroundColliderExclusions, ["Terrain"],
+      "direct export preserves auto-layout ground collider exclusions");
     assert.equal(fs.readFileSync(scenePath, "utf8"), "scene bundle fixture");
     assert.equal(fs.readFileSync(dependencyPath, "utf8"), "dependency fixture");
     assert.match(direct.toasts.at(-1), /Installed 4 course file/);
