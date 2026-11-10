@@ -31,6 +31,8 @@ function exportDocument() {
     mapLighting: draft.mapLighting || defaultMapLighting(),
     layoutGroundColliderExclusions: draft.layoutGroundColliderExclusions || []
   };
+  if (imported && draft.mapPreviewWorldBounds) documentData.mapPreviewWorldBounds = draft.mapPreviewWorldBounds;
+  if (imported && draft._legacyObPreviewBounds) documentData.obPreviewRepairBounds = draft._legacyObPreviewBounds;
   if (imported) documentData.mapScene = {
     scenePath: draft.mapScene.scenePath.trim(), bundlePath: draft.mapScene.bundlePath.replace(/\\/g, "/").trim(),
     dependencyBundlePaths: (draft.mapScene.dependencyBundlePaths || []).map(function (path) { return path.replace(/\\/g, "/").trim(); })
@@ -145,6 +147,7 @@ async function openInstalledCourse(fileName) {
     const response = await fetch("/course-files/" + encodeURIComponent(fileName), { cache: "no-store" });
     if (!response.ok) throw new Error("Could not read that installed course.");
     state.draft = normalizeCourse(await response.json());
+    adoptGeneratedPreviewBounds();
     state.sceneBundleFile = null; state.dependencyFiles = [];
     state.holeIndex = 0; state.mapWidth = state.draft.editorMapWidthMeters || 400;
     state.cardTheme = state.draft.cardTheme || "moss"; state.mapMode = "design";
@@ -170,6 +173,10 @@ async function createLayoutOnInstalledMap(map) {
     if (!response.ok) throw new Error("Could not read the installed map setup.");
     const source = await response.json();
     state.draft = normalizeCourse(source);
+    if (!state.draft.mapPreviewWorldBounds && map.previewWorldBounds) {
+      state.draft.mapPreviewWorldBounds = Object.assign({}, map.previewWorldBounds);
+      if (state.draft.holes.some(function (hole) { return (hole.obZones || []).length; })) state.draft._legacyObPreviewBounds = Object.assign({}, state.draft.mapWorldBounds);
+    }
     state.draft.id = uniqueMapLayoutId(map.id);
     state.draft.name = ("New " + (map.name || source.name || "Map") + " Layout").slice(0, 64);
     state.draft.description = "A new layout on " + (map.name || source.name || "an installed map") + ".";

@@ -163,6 +163,8 @@ function chooseMapPreview(file) {
       preview.getContext("2d").drawImage(image, 0, 0, preview.width, preview.height);
       state.draft.mapPreviewImage = slug(state.draft.id) + "-map.png";
       state.draft.mapPreviewDataUrl = preview.toDataURL("image/png");
+      state.draft.mapPreviewWorldBounds = null;
+      state.draft._legacyObPreviewBounds = null;
       setMapImage(); paintMap(); saveState(); toast("Map preview loaded and converted to PNG.");
     };
     image.onerror = function () { toast("Could not read that map image."); };

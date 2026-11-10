@@ -154,6 +154,8 @@ function normalizeCourse(value) {
     sourceMode: source.mapScene || source.sourceMode === "imported" ? "imported" : "original",
     mapScene: source.mapScene || source.sourceMode === "imported" ? Object.assign({ scenePath: "", bundlePath: "", dependencyBundlePaths: [] }, source.mapScene || {}) : null,
     mapPreviewImage: source.mapPreviewImage || "", mapPreviewDataUrl: source.mapPreviewDataUrl || "",
+    mapPreviewWorldBounds: source.mapPreviewWorldBounds || null,
+    _legacyObPreviewBounds: source.obPreviewRepairBounds || source._legacyObPreviewBounds || null,
     layoutGroundColliderExclusions: Array.isArray(source.layoutGroundColliderExclusions) ? source.layoutGroundColliderExclusions.slice(0, 8) : [],
     mapWorldBounds: Object.assign({ minX: -100, maxX: 100, minZ: -100, maxZ: 100, groundY: 0 }, source.mapWorldBounds || {}),
     mapLighting: Object.assign(defaultMapLighting(), source.mapLighting || {}, {
@@ -163,6 +165,14 @@ function normalizeCourse(value) {
     editorMapWidthMeters: Number(source.editorMapWidthMeters) || 400,
     cardSubtitle: source.cardSubtitle || "CUSTOM OFFLINE LAYOUT", cardTheme: source.cardTheme || "moss"
   };
+}
+function adoptGeneratedPreviewBounds(verifiedDataUrl) {
+  if (!isImportedMap() || state.draft.mapPreviewWorldBounds || (state.draft.mapPreviewDataUrl && !verifiedDataUrl)) return false;
+  const map = state.installedMaps.find(function (item) { return item.id === slug(state.draft.id); });
+  if (!map || !map.previewWorldBounds) return false;
+  state.draft.mapPreviewWorldBounds = Object.assign({}, map.previewWorldBounds);
+  state.draft._legacyObPreviewBounds = Object.assign({}, state.draft.mapWorldBounds);
+  return true;
 }
 function slug(value) {
   return String(value || "").toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "custom-course";

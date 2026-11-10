@@ -223,6 +223,8 @@ test("Course Editor exports through direct install and both fallback flows", asy
     const direct = runExportClient({
       fetch: function (url, options) { return server.fetch(url, options); }
     });
+    direct.state.draft.mapPreviewWorldBounds = { minX: -20, maxX: 20, minZ: -10, maxZ: 10 };
+    direct.state.draft._legacyObPreviewBounds = { minX: -18, maxX: 18, minZ: -9, maxZ: 9 };
     await direct.exportCourse();
 
     const coursePath = path.join(pluginRoot, "Courses", "export-fixture.json");
@@ -233,6 +235,11 @@ test("Course Editor exports through direct install and both fallback flows", asy
     assert.ok(fs.existsSync(cardPath), "direct install writes the hole card");
     assert.deepEqual(JSON.parse(fs.readFileSync(coursePath, "utf8")).layoutGroundColliderExclusions, ["Terrain"],
       "direct export preserves auto-layout ground collider exclusions");
+    const exported = JSON.parse(fs.readFileSync(coursePath, "utf8"));
+    assert.deepEqual(exported.mapPreviewWorldBounds, direct.state.draft.mapPreviewWorldBounds,
+      "export preserves the overview's world coverage");
+    assert.deepEqual(exported.obPreviewRepairBounds, direct.state.draft._legacyObPreviewBounds,
+      "export preserves the option to repair older OB drawings later");
     assert.equal(fs.readFileSync(scenePath, "utf8"), "scene bundle fixture");
     assert.equal(fs.readFileSync(dependencyPath, "utf8"), "dependency fixture");
     assert.match(direct.toasts.at(-1), /Installed 4 course file/);

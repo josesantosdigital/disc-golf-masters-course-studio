@@ -16,6 +16,7 @@
     "maxZ": 150,
     "groundY": 0
   },
+  "mapPreviewWorldBounds": { "minX": -254.4, "maxX": 254.4, "minZ": -159, "maxZ": 159 },
   "waterLandingClearanceMeters": 0.25,
   "mapLighting": {
     "preserveLightmaps": true,

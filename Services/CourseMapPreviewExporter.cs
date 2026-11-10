@@ -81,6 +81,16 @@ internal static class CourseMapPreviewExporter
             var temporaryPath = outputPath + ".tmp";
             File.WriteAllBytes(temporaryPath, png);
             File.Move(temporaryPath, outputPath, true);
+            // The image includes aspect-ratio fitting and a 6% margin. Record
+            // the actual world rectangle represented by the image, rather
+            // than asking the editor to infer it from the map's play bounds.
+            var halfZ = camera.orthographicSize;
+            var halfX = halfZ * camera.aspect;
+            var previewBounds = new { minX = bounds.center.x - halfX, maxX = bounds.center.x + halfX, minZ = bounds.center.z - halfZ, maxZ = bounds.center.z + halfZ };
+            var boundsPath = outputPath + ".bounds.json";
+            var temporaryBoundsPath = boundsPath + ".tmp";
+            File.WriteAllText(temporaryBoundsPath, System.Text.Json.JsonSerializer.Serialize(previewBounds));
+            File.Move(temporaryBoundsPath, boundsPath, true);
             Plugin.LogSource.LogInfo($"Captured a {PreviewWidth}x{PreviewHeight} Course Studio overview for imported map '{courseId}'.");
         }
         catch (Exception ex)

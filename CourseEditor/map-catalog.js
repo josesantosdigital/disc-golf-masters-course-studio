@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
 
 async function listInstalledMaps(options) {
   const pluginRoot = path.resolve(options.pluginRoot);
@@ -63,11 +64,56 @@ async function listInstalledMaps(options) {
         worldBoundsStatus: getWorldBoundsStatus(course.mapWorldBounds),
         baseCourse: typeof course.baseCourse === "string" ? course.baseCourse : "CanonPark",
         previewUrl: previewUrl,
+        _previewPath: previewUrl ? (customPreviewPath && fs.existsSync(customPreviewPath) ? customPreviewPath : generatedPreviewPath) : "",
+        _worldBounds: course.mapWorldBounds,
         configured: !!(scenePathValid && bundlePath)
       });
     } catch (error) {
       // Ignore malformed course JSON and keep scanning the other installed packages.
     }
+  }
+
+  // Old auto-captures show a padded, aspect-fitted area, not mapWorldBounds.
+  // Recognize copied captures by content so custom screenshots remain untouched.
+  const hashes = new Map();
+  async function previewHash(file) {
+    if (!file) return "";
+    if (!hashes.has(file)) {
+      try { hashes.set(file, crypto.createHash("sha256").update(await fs.promises.readFile(file)).digest("hex")); }
+      catch (error) { hashes.set(file, ""); }
+    }
+    return hashes.get(file);
+  }
+  const captures = [];
+  for (const map of maps) {
+    const generatedPath = path.join(editorRoot, "assets", "maps", "imported-" + map.id + ".png");
+    const b = map._worldBounds;
+    if (!b || ![b.minX, b.maxX, b.minZ, b.maxZ].every(Number.isFinite) || b.maxX <= b.minX || b.maxZ <= b.minZ) continue;
+    try {
+      const head = Buffer.alloc(24);
+      const file = await fs.promises.open(generatedPath, "r");
+      try { await file.read(head, 0, head.length, 0); } finally { await file.close(); }
+      if (head.toString("hex", 0, 8) !== "89504e470d0a1a0a" || head.readUInt32BE(16) !== 1280 || head.readUInt32BE(20) !== 800) continue;
+      const hash = await previewHash(generatedPath);
+      if (!hash) continue;
+      const halfHeight = Math.max((b.maxZ - b.minZ) / 2, (b.maxX - b.minX) / 3.2) * 1.06;
+      const centerX = (b.minX + b.maxX) / 2, centerZ = (b.minZ + b.maxZ) / 2;
+      let capturedBounds = { minX: centerX - halfHeight * 1.6, maxX: centerX + halfHeight * 1.6, minZ: centerZ - halfHeight, maxZ: centerZ + halfHeight };
+      try {
+        const stored = JSON.parse(await fs.promises.readFile(generatedPath + ".bounds.json", "utf8"));
+        if (stored && [stored.minX, stored.maxX, stored.minZ, stored.maxZ].every(Number.isFinite) && stored.maxX > stored.minX && stored.maxZ > stored.minZ) capturedBounds = stored;
+      } catch (error) { /* Legacy capture: derive its original padded bounds. */ }
+      captures.push({ hash, bounds: capturedBounds });
+    } catch (error) { /* No recognizable generated overview. */ }
+  }
+  for (const map of maps) {
+    const hash = await previewHash(map._previewPath);
+    const candidates = hash ? captures.filter(function (candidate) { return candidate.hash === hash; }) : [];
+    const capture = candidates[0];
+    const ambiguous = capture && candidates.some(function (candidate) { return ["minX", "maxX", "minZ", "maxZ"].some(function (key) { return Math.abs(candidate.bounds[key] - capture.bounds[key]) > 0.01; }); });
+    if (capture && !ambiguous) map.previewWorldBounds = capture.bounds;
+    delete map._previewPath;
+    delete map._worldBounds;
   }
 
   const bundles = await findBundles(mapsRoot, pluginRoot);
@@ -189,6 +235,8 @@ async function deleteInstalledMap(options, selection) {
   if (mapId && !otherIds.has(mapId)) {
     const generatedPreview = path.resolve(editorRoot, "assets", "maps", "imported-" + mapId + ".png");
     filesToDelete.set(generatedPreview.toLowerCase(), { path: generatedPreview, root: editorRoot, kind: "image" });
+    const generatedBounds = generatedPreview + ".bounds.json";
+    filesToDelete.set(generatedBounds.toLowerCase(), { path: generatedBounds, root: editorRoot, kind: "image" });
   }
   if (coursePath) filesToDelete.set(coursePath.toLowerCase(), { path: coursePath, root: courseFiles, kind: "course" });
 

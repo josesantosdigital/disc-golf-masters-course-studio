@@ -9,6 +9,33 @@ const test = require("node:test");
 const { listInstalledMaps, deleteInstalledMap } = require("../CourseEditor/map-catalog");
 const authoringWarnings = vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../CourseEditor/app-library.js"), "utf8") + "\ninstalledMapAuthoringWarnings", {});
 
+test("recognizes generated padded previews, including copied course images", async function () {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "dgm-preview-bounds-"));
+  try {
+    const courseFiles = path.join(root, "Courses"), mapsRoot = path.join(root, "Maps"), editorRoot = path.join(root, "CourseEditor");
+    const previews = path.join(editorRoot, "assets", "maps");
+    fs.mkdirSync(courseFiles, { recursive: true }); fs.mkdirSync(previews, { recursive: true }); fs.mkdirSync(mapsRoot, { recursive: true });
+    const png = Buffer.alloc(32); Buffer.from("89504e470d0a1a0a", "hex").copy(png); png.writeUInt32BE(1280, 16); png.writeUInt32BE(800, 20);
+    fs.writeFileSync(path.join(previews, "imported-source.png"), png);
+    fs.writeFileSync(path.join(courseFiles, "copied.png"), png);
+    fs.writeFileSync(path.join(courseFiles, "custom.png"), Buffer.from("other image"));
+    const bounds = { minX: -165.6, maxX: 25.7, minZ: -90.8, maxZ: 24.4, groundY: 43.1 };
+    const scene = { scenePath: "Assets/Scene.unity", bundlePath: "Maps/source/scene.bundle" };
+    for (const [id, image] of [["source", ""], ["copy", "copied.png"], ["custom", "custom.png"]])
+      fs.writeFileSync(path.join(courseFiles, id + ".json"), JSON.stringify({ id, name: id, mapWorldBounds: bounds, mapPreviewImage: image, mapScene: scene }));
+    const maps = await listInstalledMaps({ pluginRoot: root, courseFiles, mapsRoot, editorRoot });
+    const generated = maps.find(map => map.id === "source"), copy = maps.find(map => map.id === "copy"), custom = maps.find(map => map.id === "custom");
+    assert.deepEqual(copy.previewWorldBounds, generated.previewWorldBounds);
+    assert.ok(Math.abs(copy.previewWorldBounds.minX - (-171.339)) < 0.001);
+    assert.ok(Math.abs(copy.previewWorldBounds.minZ - (-96.568125)) < 0.001);
+    assert.equal(custom.previewWorldBounds, undefined, "a user-provided image must not be mistaken for an automatic capture");
+    const captured = { minX: -180, maxX: 40, minZ: -100, maxZ: 35 };
+    fs.writeFileSync(path.join(previews, "imported-source.png.bounds.json"), JSON.stringify(captured));
+    const after = await listInstalledMaps({ pluginRoot: root, courseFiles, mapsRoot, editorRoot });
+    assert.deepEqual(after.find(map => map.id === "copy").previewWorldBounds, captured, "recorded capture bounds override later map bounds");
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
 test("map catalog lists configured, orphaned, and repairable map packages", async function () {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "dgm-map-catalog-"));
   try {
@@ -135,6 +162,7 @@ test("map deletion removes only unshared course files and bundles", async functi
     }
     const generatedPreview = path.join(editorRoot, "assets", "maps", "imported-map-one.png");
     fs.writeFileSync(generatedPreview, "generated preview fixture");
+    fs.writeFileSync(generatedPreview + ".bounds.json", "{}");
 
     const result = await deleteInstalledMap({ pluginRoot, courseFiles, mapsRoot, editorRoot }, {
       courseFileName: "map-one.json", bundlePath: "Maps/one/scene.bundle"
@@ -145,7 +173,7 @@ test("map deletion removes only unshared course files and bundles", async functi
     assert.ok(result.deletedFiles.includes("Courses/map-one.json"));
     assert.deepEqual(result.keptSharedBundles, ["Maps/shared/shared.bundle"]);
     for (const file of [selectedScene, path.join(courseFiles, "map-one.json"), path.join(courseFiles, "map-one-card.png"),
-      path.join(courseFiles, "map-one-preview.png"), path.join(courseFiles, "map-one-hole.png"), generatedPreview]) {
+      path.join(courseFiles, "map-one-preview.png"), path.join(courseFiles, "map-one-hole.png"), generatedPreview, generatedPreview + ".bounds.json"]) {
       assert.equal(fs.existsSync(file), false, "selected map file should be removed: " + file);
     }
     for (const file of [sharedBundle, otherScene, path.join(courseFiles, "map-two.json"),

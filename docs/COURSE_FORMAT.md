@@ -55,6 +55,8 @@ For a scenic selector image, the loader attempts to capture the current hole fro
 | `holes` | yes | 1–18 hole definitions. |
 | `mapScene` | no | Imported Unity scene bundle configuration. |
 | `mapWorldBounds` | no | Imported map X/Z bounds set editor coordinates, constrain automatic hole sampling, and define the fallback normal-play rectangle. The play rectangle expands beyond the configured bounds by 5% of the larger span, clamped to 10–40 m; too-wide bounds can put holes in empty outskirts, while too-tight bounds can make nearby fairway throws OB. `groundY` guides default marker snapping and sampled-ground selection. Bounds do not rescale the scene. |
+| `mapPreviewWorldBounds` | no | Editor-only X/Z rectangle represented by the entire map preview image. Generated overviews include aspect fitting and padding, so this can be larger than `mapWorldBounds`. It affects map image coordinates only, not the play area, tee or basket positions, or OB rules. |
+| `obPreviewRepairBounds` | no | Editor-only record of the previous image mapping when existing OB zones may need an explicit one-time alignment to a corrected generated overview. It is removed after the user applies the repair; gameplay ignores it. |
 | `mapLighting` | no | Optional imported-scene rendering adjustments, including map-specific camera occlusion handling. |
 
   The course format recognizes `CanonPark`, `MinokaSprings`, `BaldurDgc`, `MapleHill`, `ChampionsLanding`, `WinthropGold`, `NokiaDiscGolfPark`, and `Terminalen` IDs. This list describes accepted identifiers, not courses available in every game build. For a playable base scene, choose a course exported by the installed game; the Course Studio Original courses tab is generated from that build's loaded course catalog.

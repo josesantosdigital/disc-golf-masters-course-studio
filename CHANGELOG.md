@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.117 development
+- Align generated imported-map overviews with their actual padded world extent, including copied legacy previews. Add an explicit repair for earlier OB drawings and record exact bounds for future captures; runtime verification is pending.
+
 ## 0.5.116 candidate
 - Keep imported run-up framing through Cinemachine's transition to the flight camera, with a bounded fallback. A player confirmed the fix on one imported course; broader gameplay checks remain open.
 

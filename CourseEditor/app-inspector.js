@@ -144,7 +144,8 @@ function renderInspector() {
   } else if (state.inspector === "ob") {
     const zones = Array.isArray(hole.obZones) ? hole.obZones : [];
     html = '<div class="inspector-block"><div class="inspector-head"><h3>OB limits</h3><small>' + zones.length + ' ZONES</small></div>' +
-      '<div class="note-box"><span>⬡</span><div>Draw closed polygon zones on the map. Points are stored in meters relative to this hole’s original tee.</div></div>' +
+      '<div class="note-box"><span>⬡</span><div>Draw closed polygon zones on the map. Points are stored in meters relative to this hole’s ' + (isImportedMap() ? 'tee' : 'original tee') + '.</div></div>' +
+      (isImportedMap() && state.draft._legacyObPreviewBounds && state.draft.holes.some(function (item) { return (item.obZones || []).length; }) ? '<div class="note-box"><span>!</span><div>The map overview alignment was corrected. Earlier OB zones can be moved back to where they were drawn on the image; this updates all holes when you export.</div></div><div class="inspector-actions"><button class="inspector-button" data-action="realign-legacy-ob">Align earlier OB zones to preview</button></div>' : '') +
       '<div class="inspector-actions"><button class="inspector-button primary" data-action="start-ob">＋ Draw OB zone</button>' + (state.pendingObPoints.length ? '<button class="inspector-button" data-action="finish-ob">Finish zone</button>' : "") + '</div>' +
       '<div class="inspector-block"><div class="zone-list">' + (zones.length ? zones.map(function (zone, index) {
         return '<div class="zone-item' + (state.selectedZone === index ? " active" : "") + '"><span><i></i>' + escapeHtml(zone.name || ("OB zone " + (index + 1))) + ' <small>' + ((zone.points || []).length) + ' pts</small></span><button data-action="delete-zone" data-index="' + index + '" title="Remove zone" aria-label="Remove ' + escapeAttr(zone.name || "zone") + '">×</button></div>';
@@ -219,6 +220,7 @@ function doAction(action, index) {
   if (action === "cancel-ob") cancelOb();
   if (action === "finish-ob") finishOb();
   if (action === "delete-zone" && index >= 0) { hole.obZones.splice(index, 1); state.selectedZone = -1; }
+  if (action === "realign-legacy-ob") { try { realignLegacyObZones(); } catch (error) { toast(error.message || "Could not align the OB zones."); } return; }
   renderEditor();
 }
 function setMapImage() {

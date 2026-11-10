@@ -159,6 +159,14 @@ async function loadInstalledMaps() {
     if (!Array.isArray(maps)) throw new Error("Map explorer received an invalid package list.");
     state.installedMaps = maps;
     state.installedMapsLoaded = true;
+    let verifiedPreview = false;
+    if (isImportedMap() && state.draft.mapPreviewDataUrl && !state.draft.mapPreviewWorldBounds) {
+      const savedMap = maps.find(function (map) { return map.id === slug(state.draft.id) && map.previewWorldBounds && map.previewUrl; });
+      if (savedMap) {
+        try { verifiedPreview = (await imageUrlToDataUrl(savedMap.previewUrl)) === state.draft.mapPreviewDataUrl; } catch (error) { }
+      }
+    }
+    if (adoptGeneratedPreviewBounds(verifiedPreview)) { setMapImage(); renderEditor(); saveState(); }
   } catch (error) {
     try {
       const response = await fetch("/api/courses", { cache: "no-store" });

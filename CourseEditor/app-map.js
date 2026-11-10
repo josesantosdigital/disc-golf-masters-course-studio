@@ -13,22 +13,27 @@ function screenToN(point, geometry) { return { x: clamp((point.x - geometry.x) /
 function currentCourseSize() {
   const aspect = state.image ? state.image.naturalHeight / state.image.naturalWidth : 0.72;
   if (state.draft && state.draft.sourceMode === "imported") {
-    const bounds = state.draft.mapWorldBounds;
+    const bounds = importedPreviewBounds();
     return { width: Math.max(1, Number(bounds.maxX) - Number(bounds.minX)), height: Math.max(1, Number(bounds.maxZ) - Number(bounds.minZ)) };
   }
   return { width: state.mapWidth, height: state.mapWidth * aspect };
 }
+function importedPreviewBounds() {
+  const preview = state.draft && state.draft.mapPreviewWorldBounds;
+  if (preview && [preview.minX, preview.maxX, preview.minZ, preview.maxZ].every(Number.isFinite) && preview.maxX > preview.minX && preview.maxZ > preview.minZ) return preview;
+  return state.draft.mapWorldBounds;
+}
 function mapNormToWorld(position, priorPosition) {
-  const bounds = state.draft.mapWorldBounds;
+  const bounds = importedPreviewBounds();
   return {
     x: round1(Number(bounds.minX) + position.x * (Number(bounds.maxX) - Number(bounds.minX))),
-    y: priorPosition && Number.isFinite(Number(priorPosition.y)) ? round1(Number(priorPosition.y)) : round1(Number(bounds.groundY) || 0),
+    y: priorPosition && Number.isFinite(Number(priorPosition.y)) ? round1(Number(priorPosition.y)) : round1(Number(state.draft.mapWorldBounds.groundY) || 0),
     z: round1(Number(bounds.maxZ) - position.y * (Number(bounds.maxZ) - Number(bounds.minZ)))
   };
 }
 function worldToMapNorm(position, fallback) {
   if (!position) return fallback;
-  const bounds = state.draft.mapWorldBounds;
+  const bounds = importedPreviewBounds();
   const width = Number(bounds.maxX) - Number(bounds.minX), depth = Number(bounds.maxZ) - Number(bounds.minZ);
   if (width <= 0 || depth <= 0) return fallback;
   return {
@@ -65,6 +70,36 @@ function markerMapPosition(hole, type) {
   return type === "tee" ? offsetToMap(anchors.tee, hole.teeOffset, hole) : offsetToMap(anchors.basket, hole.basketOffset, hole);
 }
 function obPointToMap(point, hole) { return offsetToMap(obAnchor(hole), point, hole); }
+// Reinterpret old image-space drawings using the actual padded capture bounds.
+// This is an explicit repair for existing zones; tee and basket positions stay put.
+function realignLegacyObZones() {
+  const old = state.draft && state.draft._legacyObPreviewBounds;
+  const preview = state.draft && state.draft.mapPreviewWorldBounds;
+  if (!old || !preview || ![old.minX, old.maxX, old.minZ, old.maxZ, preview.minX, preview.maxX, preview.minZ, preview.maxZ].every(Number.isFinite) || old.maxX <= old.minX || old.maxZ <= old.minZ) throw new Error("The old map alignment is unavailable.");
+  const changes = [];
+  state.draft.holes.forEach(function (hole) {
+    if (!(hole.obZones || []).length) return;
+    const tee = hole.mapTeePosition, basket = hole.mapBasketPosition;
+    if (!tee || !basket || ![tee.x, tee.z, basket.x, basket.z].every(Number.isFinite)) throw new Error("Each hole with OB needs a tee and basket before alignment.");
+    const dx = basket.x - tee.x, dz = basket.z - tee.z;
+    const heading = (Math.hypot(dx, dz) > 1 ? Math.atan2(dz, dx) : Number(mapAnchors(hole).heading) || 0) - (Number(hole.teeYawDegrees) || 0) * Math.PI / 180;
+    const f = { x: Math.cos(heading), z: Math.sin(heading) }, r = { x: Math.sin(heading), z: -Math.cos(heading) };
+    (hole.obZones || []).forEach(function (zone) {
+      const repaired = (zone.points || []).map(function (point) {
+        const x = tee.x + r.x * point.right + f.x * point.forward;
+        const z = tee.z + r.z * point.right + f.z * point.forward;
+        const mappedX = preview.minX + (x - old.minX) / (old.maxX - old.minX) * (preview.maxX - preview.minX);
+        const mappedZ = preview.maxZ - (old.maxZ - z) / (old.maxZ - old.minZ) * (preview.maxZ - preview.minZ);
+        const deltaX = mappedX - tee.x, deltaZ = mappedZ - tee.z;
+        return { right: round1(deltaX * r.x + deltaZ * r.z), forward: round1(deltaX * f.x + deltaZ * f.z) };
+      });
+      changes.push({ zone: zone, points: repaired });
+    });
+  });
+  changes.forEach(function (change) { change.zone.points = change.points; });
+  state.draft._legacyObPreviewBounds = null;
+  renderEditor(); saveState(); toast("Existing OB zones aligned to the overview. Export to update the game.");
+}
 function updateMarkerFromMap(hole, type, position) {
   const anchors = mapAnchors(hole);
   if (state.draft && state.draft.sourceMode === "imported") {
