@@ -35,6 +35,7 @@
     <Reference Include="UnityEngine.AssetBundleModule"><HintPath>$(GameRoot)\BepInEx\interop\UnityEngine.AssetBundleModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GameRoot)\BepInEx\interop\UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.TerrainModule"><HintPath>$(GameRoot)\BepInEx\interop\UnityEngine.TerrainModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Cinemachine"><HintPath>$(GameRoot)\BepInEx\interop\Unity.Cinemachine.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.RenderPipelines.Core.Runtime"><HintPath>$(GameRoot)\BepInEx\interop\Unity.RenderPipelines.Core.Runtime.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Runtime"><HintPath>$(GameRoot)\BepInEx\interop\Unity.RenderPipelines.Universal.Runtime.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(GameRoot)\BepInEx\interop\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>

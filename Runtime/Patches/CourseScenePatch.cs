@@ -340,6 +340,7 @@ internal static partial class CourseScenePatcher
     public static void RestoreSnapshots()
     {
         CourseSceneCardCapture.Cancel();
+        ImportedRunupCameraPatch.Reset();
         RunupCameraDiagnostics.Reset();
         ImportedAudioSurfacePatch.Reset();
         ImportedFoliageInteraction.Reset();

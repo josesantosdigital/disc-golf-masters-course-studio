@@ -1,5 +1,6 @@
 using Dgm;
 using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace DgmCustomCourses;
@@ -40,9 +41,35 @@ internal static class RunupCameraDiagnostics
             var camera = _player.GetGameCamera();
             var tee = _player.GetTeepad();
             var teeCamera = _player.GetTeeCamera();
-            Plugin.LogSource.LogInfo($"Run-up camera diagnostic t={now - _startedAt:F2}s sample={_sample}: camera={Describe(camera == null ? null : camera.transform)}; teeCamera={Describe(teeCamera == null ? null : teeCamera.transform)}; player={Describe(_player.transform)}; aim={Describe(_player.aimHolder)}; tee={Describe(tee == null ? null : tee.transform)}; runup={Describe(_sequence.transform)}; running={_sequence.IsRunupSequenceCurrentlyOngoing()}.");
+            Plugin.LogSource.LogInfo($"Run-up camera diagnostic t={now - _startedAt:F2}s sample={_sample}: camera={Describe(camera == null ? null : camera.transform)}; teeCamera={Describe(teeCamera == null ? null : teeCamera.transform)}; player={Describe(_player.transform)}; aim={Describe(_player.aimHolder)}; tee={Describe(tee == null ? null : tee.transform)}; runup={Describe(_sequence.transform)}; state={_player.playerState}; running={_sequence.IsRunupSequenceCurrentlyOngoing()}.");
+            if (_sample == 2 || _sample == 8 || _sample == 14)
+                LogPlayerRenderers(camera);
         }
         catch (Exception ex) { Plugin.LogSource.LogWarning($"Run-up camera diagnostic stopped: {ex.Message}"); _player = null; _sequence = null; }
+    }
+
+    private static void LogPlayerRenderers(Camera camera)
+    {
+        var playerRenderers = _player.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        var sequenceRenderers = _sequence.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        var examples = new List<string>();
+        foreach (var renderer in playerRenderers)
+        {
+            if (renderer == null || examples.Count >= 16) continue;
+            var bounds = renderer.bounds;
+            var viewport = camera == null ? Vector3.zero : camera.WorldToViewportPoint(bounds.center);
+            var inMask = camera != null && (camera.cullingMask & (1 << renderer.gameObject.layer)) != 0;
+            examples.Add($"{renderer.name}[enabled={renderer.enabled},active={renderer.gameObject.activeInHierarchy},visible={renderer.isVisible},layer={renderer.gameObject.layer},inCameraMask={inMask},boundsCenter=({bounds.center.x:F1},{bounds.center.y:F1},{bounds.center.z:F1}),boundsSize=({bounds.size.x:F1},{bounds.size.y:F1},{bounds.size.z:F1}),viewport=({viewport.x:F2},{viewport.y:F2},{viewport.z:F2})]");
+        }
+        foreach (var renderer in sequenceRenderers)
+        {
+            if (renderer == null || examples.Count >= 24) continue;
+            var bounds = renderer.bounds;
+            var viewport = camera == null ? Vector3.zero : camera.WorldToViewportPoint(bounds.center);
+            var inMask = camera != null && (camera.cullingMask & (1 << renderer.gameObject.layer)) != 0;
+            examples.Add($"runup/{renderer.name}[enabled={renderer.enabled},active={renderer.gameObject.activeInHierarchy},visible={renderer.isVisible},layer={renderer.gameObject.layer},inCameraMask={inMask},boundsCenter=({bounds.center.x:F1},{bounds.center.y:F1},{bounds.center.z:F1}),boundsSize=({bounds.size.x:F1},{bounds.size.y:F1},{bounds.size.z:F1}),viewport=({viewport.x:F2},{viewport.y:F2},{viewport.z:F2})]");
+        }
+        Plugin.LogSource.LogInfo($"Run-up player-render diagnostic sample={_sample}: playerSkinnedRenderers={playerRenderers.Length}; sequenceSkinnedRenderers={sequenceRenderers.Length}; examples={string.Join(" || ", examples)}.");
     }
 
     private static string Describe(Transform transform)

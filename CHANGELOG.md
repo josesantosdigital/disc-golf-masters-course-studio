@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.116 candidate
+- Keep imported run-up framing through Cinemachine's transition to the flight camera, with a bounded fallback. A player confirmed the fix on one imported course; broader gameplay checks remain open.
+
+## 0.5.115 development
+- Keep imported run-up camera framing through the throw animation until the disc release callback, including when run-up movement ends early. In-game verification is pending.
+
+## 0.5.114 development
+- Start the imported run-up camera correction while the run-up button is held, easing it in as the aim rig moves. In-game verification is pending.
+
+## 0.5.113 development
+- Reframe the imported run-up camera when the player and aim rig are separated sideways. Restore the camera after the run-up; in-game verification is pending.
+
+## 0.5.112 development
+- Remove the unverified run-up camera position experiment after it failed the player test. Log bounded character renderer and camera framing details to distinguish visibility from placement problems.
+
+## 0.5.111 development
+- Temporarily pull the imported-course tee camera back during a run-up when the run-up object would otherwise be behind or too close to it. Restore its ordinary position afterward; in-game verification is pending.
+
 ## 0.5.110 development
 - Extend the existing read-only run-up camera trace to cover longer run-ups and the release moment.
 
