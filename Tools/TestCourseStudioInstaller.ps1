@@ -149,10 +149,27 @@ try {
         for ($i = 0; $i -lt $archiveData.Count; $i++) {
             Assert-True ((Get-Hash $archiveData[$i].Path) -eq $archiveDataHashes[$i]) "the archive installer changed existing player data: $($archiveData[$i].Path)"
         }
+
+        # The one-click bootstrap launches setup with Windows PowerShell -File.
+        # In Windows PowerShell 5.1, $PSScriptRoot can be empty in an advanced
+        # script's parameter defaults even though it is set in the script body.
+        $setupScript = Join-Path $extractedPackageRoot 'Setup-CourseStudio.ps1'
+        $directGameRoot = Join-Path $tempRoot 'DirectSetupGame'
+        New-FakeGameRoot $directGameRoot
+        [IO.File]::WriteAllText((Join-Path $directGameRoot 'Disc Golf Masters.exe'), '')
+        $portableNode = Join-Path $directGameRoot 'BepInEx\plugins\CustomCourseLoader\CourseEditor\runtime\node.exe'
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $portableNode) | Out-Null
+        [IO.File]::WriteAllText($portableNode, 'fake portable node')
+        $windowsPowerShell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $setupArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $setupScript, '-GameRoot', $directGameRoot, '-NoShortcut')
+        if ($extractedManifest.draft) { $setupArguments += '-AllowDraft' }
+        & $windowsPowerShell @setupArguments
+        Assert-True ($LASTEXITCODE -eq 0) 'direct Windows PowerShell -File setup failed.'
+        Assert-True ((Get-Hash (Join-Path $directGameRoot 'BepInEx\plugins\CustomCourseLoader\CustomCourseLoader.dll')) -eq (Get-Hash $archivePackagedDll)) 'direct setup did not install the packaged plugin.'
     }
 
     $result = 'fresh install, update preservation, and default DRAFT refusal'
-    if (-not [string]::IsNullOrWhiteSpace($ArchivePath)) { $result += ', plus extracted archive install and preservation' }
+    if (-not [string]::IsNullOrWhiteSpace($ArchivePath)) { $result += ', plus extracted archive install, preservation, and direct Windows PowerShell setup' }
     Write-Host "Course Studio package installer checks passed: $result."
 }
 finally {

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$GameRoot,
-    [string]$PackageRoot = $PSScriptRoot,
+    [string]$PackageRoot,
     [switch]$AllowDraft,
     [switch]$NoShortcut,
     [string]$BepInExArchive,
@@ -9,6 +9,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($PackageRoot)) { $PackageRoot = $PSScriptRoot }
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $bepUrl = 'https://builds.bepinex.dev/projects/bepinex_be/791/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.791%2Bb782da4.zip'
 $bepHash = 'BB1C510909B69522733791F3A0817A487379A52DA6468A492F1C9C19B3EC6F9A'
