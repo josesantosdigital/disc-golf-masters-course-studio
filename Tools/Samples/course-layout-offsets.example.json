@@ -32,6 +32,8 @@
       "par": 4,
       "lengthMeters": 112,
       "shotLimit": 0,
+      "teeEnabled": true,
+      "cardEnabled": false,
       "teeOffset": { "right": 2, "up": 0, "forward": -4 },
       "basketOffset": { "right": -6, "up": 0, "forward": 101 },
       "teeYawDegrees": 4,

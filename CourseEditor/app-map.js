@@ -170,7 +170,7 @@ function drawHolePlan(geometry) {
     pending.forEach(drawPendingObVertex);
   }
   const teeWorldYaw = 90 - mapHeading(hole) * 180 / Math.PI + (isImportedMap() ? 0 : Number(hole.teeYawDegrees) || 0);
-  if (hole.teeEnabled !== false) drawTee(teePt, teeWorldYaw, state.selectedMarker === "tee");
+  drawTee(teePt, teeWorldYaw, state.selectedMarker === "tee");
   if (hole.basketEnabled !== false) drawBasket(basketPt, hole.basketYawDegrees, state.selectedMarker === "basket");
   drawMapLabel(teePt, "TEE " + String(state.holeIndex + 1).padStart(2, "0"), "#c9f38d", -1);
   drawMapLabel(basketPt, "PIN " + String(state.holeIndex + 1).padStart(2, "0"), "#f4bd8d", 1);
@@ -288,7 +288,7 @@ function cancelOb() {
 }
 function nearestMarker(position, geometry) {
   const hole = currentHole(); let result = null;
-  [["tee", hole.teeEnabled !== false], ["basket", hole.basketEnabled !== false]].forEach(function (entry) {
+  [["tee", true], ["basket", hole.basketEnabled !== false]].forEach(function (entry) {
     if (!entry[1]) return;
     const screen = nToScreen(markerMapPosition(hole, entry[0]), geometry), distance = Math.hypot(position.x - screen.x, position.y - screen.y);
     if (distance < 21 && (!result || distance < result.distance)) result = { type: entry[0], distance: distance };

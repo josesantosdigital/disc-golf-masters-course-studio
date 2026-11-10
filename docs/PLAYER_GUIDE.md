@@ -1,10 +1,16 @@
 # Player guide
 
+## Quick setup on Windows
+
+Close Disc Golf Masters, extract the Course Studio ZIP outside the game folder, and double-click `Setup-CourseStudio.cmd`. Setup locates the Steam installation or asks you to select it, installs the loader and editor, and creates a Course Studio desktop shortcut. If necessary it downloads the pinned Windows IL2CPP BepInEx build and a portable Node runtime from their official sites and checks their SHA-256 hashes. Internet access is required when either dependency is missing. Existing BepInEx installations and player courses are preserved. The first game launch after a new BepInEx install can take longer while it prepares game files; open the offline course selector once before starting the editor.
+
+Draft archives explicitly ask before a local test install. This quick setup has not yet been accepted on a clean real-game installation. If an incomplete BepInEx setup or conflicting files are present, setup stops rather than overwriting them.
+
 ## Requirements
 
 - Windows PC installation of Disc Golf Masters.
 - BepInEx 6 IL2CPP installed for the same game installation.
-- Node.js to launch the browser editor with `Launch-Course-Editor.ps1`.
+- Node.js to launch the browser editor with `Launch-Course-Editor.ps1`; quick setup installs a private portable copy if Node is missing.
 - PowerShell on Windows for the editor launcher and the included import tools.
 
 The release does not include BepInEx, game files, or map bundles. Install the **BepInEx 6 Unity IL2CPP Windows x64** build into the same game folder first, following the [official BepInEx IL2CPP installation guide](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html). Course Studio does not install or update BepInEx. This project has been verified with BepInEx `6.0.0-be.791` on DGM build `26127348`; other versions/builds are not yet verified. See [supported environment](SUPPORTED_ENVIRONMENT.md).
@@ -21,7 +27,7 @@ The release does not include BepInEx, game files, or map bundles. Install the **
 
 4. Start the game and open the offline course selector once. The loader exports built-in course metadata and map previews for Course Studio.
 
-The installer checks for BepInEx 6 IL2CPP and copies the plugin/editor files. On updates it preserves existing `Courses`, `Maps`, `CourseEditor/catalog.js`, `CourseEditor/assets/maps`, and custom personal-best data. It adds the bundled sample course only if that filename does not already exist. The release archive is marked DRAFT until release gates are closed; installing a local review build requires adding `-AllowDraft` to the command. Do not redistribute a DRAFT archive.
+The installer checks for BepInEx 6 IL2CPP and copies the plugin/editor files. On updates it preserves existing `Courses`, `Maps`, `CourseEditor/catalog.js`, `CourseEditor/assets/maps`, and custom personal-best data. It adds the bundled sample course only if that filename does not already exist. A local DRAFT archive requires adding `-AllowDraft` to the command; a BETA archive is separately marked experimental and does not require that switch.
 
 The plugin reads custom course definitions from:
 

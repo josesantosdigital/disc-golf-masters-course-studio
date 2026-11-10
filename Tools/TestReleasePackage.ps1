@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$ArchivePath,
     [Parameter(Mandatory = $true)][string]$ExpectedVersion,
-    [switch]$Draft
+    [switch]$Draft,
+    [switch]$Prerelease
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,7 +21,7 @@ if (-not [string]::Equals($sidecarText, $expectedSidecar, [StringComparison]::Or
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 Import-Module (Join-Path $PSScriptRoot 'Modules\ReleaseArchivePolicy.psm1') -Force
-$auditedTextExtensions = @('.md', '.txt', '.ps1', '.psm1', '.cs', '.csproj', '.json', '.js', '.html', '.css', '.xml', '.yml', '.yaml', '.editorconfig', '.props', '.targets')
+$auditedTextExtensions = @('.md', '.txt', '.ps1', '.psm1', '.cmd', '.cs', '.csproj', '.json', '.js', '.html', '.css', '.xml', '.yml', '.yaml', '.editorconfig', '.props', '.targets')
 $zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
 try {
     $entries = @($zip.Entries)
@@ -152,6 +153,7 @@ try {
         'Tools/TestCourseEditorExport.cjs',
         'Tools/TestMapCatalog.cjs',
         'Tools/TestMapLightingSettings.cjs',
+        'Tools/TestTeeCardSettings.cjs',
         'Tools/TestReleasePackage.ps1',
         'Tools/TestGitIgnore.ps1'
     )
@@ -323,7 +325,8 @@ try {
     $manifestEntry = Get-ZipEntryByPath 'package-manifest.json'
     $manifestReader = [IO.StreamReader]::new($manifestEntry.Open())
     try { $manifest = $manifestReader.ReadToEnd() | ConvertFrom-Json } finally { $manifestReader.Dispose() }
-    $expectedPackage = "DiscGolfMasters-CourseStudio-$ExpectedVersion" + $(if ($Draft) { '-DRAFT' } else { '' })
+    if ($Draft -and $Prerelease) { throw 'Choose either draft or prerelease audit mode.' }
+    $expectedPackage = "DiscGolfMasters-CourseStudio-$ExpectedVersion" + $(if ($Draft) { '-DRAFT' } elseif ($Prerelease) { '-BETA' } else { '' })
     if ($manifest.pluginVersion -ne $ExpectedVersion -or $manifest.courseEditorVersion -ne $ExpectedVersion -or $manifest.package -ne $expectedPackage) {
         throw "Package manifest version/name does not match expected version '$ExpectedVersion'."
     }
@@ -332,6 +335,7 @@ try {
         throw 'Package manifest must limit MIT-0 to original project code and documentation and point to third-party terms.'
     }
     if ([bool]$manifest.draft -ne [bool]$Draft) { throw 'Package manifest draft status does not match the requested audit mode.' }
+    if ([bool]$manifest.prerelease -ne [bool]$Prerelease) { throw 'Package manifest prerelease status does not match the requested audit mode.' }
     if ($manifest.bundledUserMapAssets -ne $false -or $manifest.bundledOriginalGameAssets -ne $false) {
         throw 'Package manifest must state that user map and original game assets are excluded.'
     }
@@ -369,13 +373,16 @@ try {
     }
 
     $draftMarker = $pathSet.Contains('DRAFT-RELEASE-STATUS.txt')
+    $betaMarker = $pathSet.Contains('BETA-RELEASE-STATUS.txt')
     $licenseEntry = $pathSet.Contains('LICENSE')
     if ($Draft) {
         if (-not $draftMarker) { throw 'Draft archive is missing DRAFT-RELEASE-STATUS.txt.' }
+        if ($betaMarker) { throw 'Draft archive must not contain a beta marker.' }
     }
     else {
         if ($draftMarker) { throw 'Public archive must not contain DRAFT-RELEASE-STATUS.txt.' }
         if (-not $licenseEntry) { throw 'Public archive is missing LICENSE.' }
+        if ($Prerelease -ne $betaMarker) { throw 'Beta archive marker does not match prerelease status.' }
     }
 
     Write-Host "Release archive audit passed: $($entries.Count) entries, version $ExpectedVersion, draft=$([bool]$Draft)."

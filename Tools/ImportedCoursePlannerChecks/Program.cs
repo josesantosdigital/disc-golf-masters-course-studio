@@ -42,3 +42,9 @@ var relaxed = ImportedCoursePlanner.Plan(separatedLand, 9, out var usedRelaxedPa
 Check(relaxed.Count == 9 && usedRelaxedPairs && relaxed.All(hole => hole.Distance >= 8f), "completes a course when separated land clusters leave gaps in target distances");
 Check(ImportedCoursePlanner.Plan(new[] { sparse[0] }, 9).Count == 0, "does not invent a basket when only one grounded point is available");
 Check(ImportedCoursePlanner.Plan(Array.Empty<ImportedCoursePlanner.Point>(), 9).Count == 0, "declines to invent ground positions");
+Check(ImportedLieHeightPolicy.TryChooseGround(0.2f, 0.1f, 0.1f, 0.1f, 0.05f, 3.55f, out var lieGround) && MathF.Abs(lieGround - 0.05f) < 0.001f, "keeps a ground-floor lie when a higher floor was selected");
+Check(ImportedLieHeightPolicy.TryChooseGround(0f, 0f, 8.4f, 8.4f, 0.05f, 13f, out var roofGround) && MathF.Abs(roofGround - 8.35f) < 0.001f, "keeps the floor beneath a disc legitimately on a roof");
+Check(!ImportedLieHeightPolicy.TryChooseGround(0f, 0f, 0.1f, 0.1f, 0.05f, 0.1f, out _), "leaves an already grounded lie alone");
+Check(!ImportedLieHeightPolicy.TryChooseGround(2f, 0f, 0.1f, 0.1f, 0.05f, 3.5f, out _), "leaves a distant relocated lie alone");
+Check(!ImportedLieHeightPolicy.TryChooseGround(0f, 0f, 0.1f, 0.1f, 2f, 3.5f, out _), "does not move an unsupported disc to a guessed surface");
+Check(!ImportedLieHeightPolicy.TryChooseGround(0f, 0f, 0.1f, float.NaN, 0.05f, 3.5f, out _), "rejects non-finite positions");

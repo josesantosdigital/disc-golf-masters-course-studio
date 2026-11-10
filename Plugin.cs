@@ -11,7 +11,7 @@ public sealed class Plugin : BasePlugin
 {
     public const string PluginGuid = "local.dgm.customcourse.loader";
     public const string PluginName = "Disc Golf Masters Custom Course Loader";
-    public const string PluginVersion = "0.5.102";
+    public const string PluginVersion = "0.5.110";
 
     internal static ManualLogSource LogSource { get; private set; }
     internal static CourseRegistry Registry { get; private set; }

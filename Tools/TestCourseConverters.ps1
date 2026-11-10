@@ -69,6 +69,8 @@ try {
     Assert-True ($offsetsCourse.holes.Count -eq 2) 'offset-layout hole count changed'
     Assert-True ($offsetsCourse.holes[0].obZones.Count -eq 1) 'offset-layout OB polygon was not preserved'
     Assert-True ($offsetsCourse.holes[0].basketYawDegrees -eq 15) 'offset-layout basket yaw was not preserved'
+    Assert-True ($offsetsCourse.holes[0].teeEnabled -eq $false -and $offsetsCourse.holes[0].cardEnabled -eq $false) 'omitted tee/card options must default off'
+    Assert-True ($offsetsCourse.holes[1].teeEnabled -eq $true -and $offsetsCourse.holes[1].cardEnabled -eq $false) 'tee-only visibility was not preserved'
     $script:passed++
 
     $unityPlugin = Join-Path $tempRootFull 'unity-layout-plugin'
@@ -79,12 +81,18 @@ try {
     & $layoutConverter -LayoutPath (Join-Path $sampleDirectory 'course-layout-unityworld.example.json') -PluginDirectory $unityPlugin
     $unityCourse = Validate-ConvertedCourse $unityPlugin 'bonelab-hoodcorner'
     Assert-True ($unityCourse.holes.Count -eq 2) 'Unity-world layout hole count changed'
+    Assert-True ($unityCourse.holes[0].teeEnabled -eq $false -and $unityCourse.holes[0].cardEnabled -eq $true) 'card-only visibility was not preserved'
+    Assert-True ($unityCourse.holes[1].teeEnabled -eq $false -and $unityCourse.holes[1].cardEnabled -eq $false) 'imported tee/card defaults must be off'
     Assert-True ($unityCourse.mapLighting.realtimeMapShadows -eq $true) 'realtimeMapShadows was dropped'
     Assert-True ($unityCourse.mapLighting.hideImportedParticles -eq $false) 'hideImportedParticles was dropped'
     Assert-True ($unityCourse.mapLighting.generateTreeCanopyColliders -eq $false) 'generateTreeCanopyColliders was dropped'
     Assert-True ($unityCourse.mapLighting.experimentalFoliageInteractions -eq $true) 'experimentalFoliageInteractions was dropped'
     Assert-True ($unityCourse.mapLighting.useGameFoliageShader -eq $false) 'useGameFoliageShader was dropped'
     Assert-True ($unityCourse.mapLighting.preferBaseCourseSun -eq $false) 'preferBaseCourseSun was dropped'
+      Assert-True ($unityCourse.mapLighting.localLightIntensityMultiplier -eq 1) 'localLightIntensityMultiplier was dropped'
+      Assert-True ($unityCourse.mapLighting.suppressedEmissionTextures.Count -eq 1 -and $unityCourse.mapLighting.suppressedEmissionTextures[0] -eq 'ExampleBrightEmission') 'suppressedEmissionTextures was dropped'
+      Assert-True ($unityCourse.mapLighting.hiddenLightFixtureTextures.Count -eq 1 -and $unityCourse.mapLighting.hiddenLightFixtureTextures[0] -eq 'ExampleFixtureEmission') 'hiddenLightFixtureTextures was dropped'
+      Assert-True ($unityCourse.mapLighting.suppressedLightRoots.Count -eq 1 -and $unityCourse.mapLighting.suppressedLightRoots[0] -eq 'ExampleRoot/ExampleBuilding') 'suppressedLightRoots was dropped'
     Assert-True ($unityCourse.mapLighting.ambientIntensity -eq 1.2) 'ambientIntensity was dropped'
     Assert-True ($unityCourse.mapLighting.keyLightIntensity -eq 2.5) 'keyLightIntensity was dropped'
     $script:passed++

@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Runtime/CourseSelectionLoadGate.cs" Link="CourseSelectionLoadGate.cs" />
+    <Compile Include="../../Domain/CourseDefinition.cs" Link="CourseDefinition.cs" />
   </ItemGroup>
 </Project>

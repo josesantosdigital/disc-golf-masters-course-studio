@@ -21,3 +21,10 @@ Check(!gate.TimedOut(17.9f), "selector does not time out early");
 Check(gate.TimedOut(18f), "selector timeout releases an unavailable layout");
 gate.End();
 Check(!gate.TimedOut(100f) && !gate.ReadyToPrepare(1000), "ended loading remains inactive");
+
+var defaultHole = System.Text.Json.JsonSerializer.Deserialize<HoleDefinition>("{}");
+Check(!defaultHole.TeeEnabled && !defaultHole.CardEnabled && defaultHole.BasketEnabled, "tee and card default off while the basket remains visible");
+var teeOnly = System.Text.Json.JsonSerializer.Deserialize<HoleDefinition>("{\"teeEnabled\":true,\"cardEnabled\":false}");
+var cardOnly = System.Text.Json.JsonSerializer.Deserialize<HoleDefinition>("{\"teeEnabled\":false,\"cardEnabled\":true}");
+Check(teeOnly.TeeEnabled && !teeOnly.CardEnabled, "tee can be enabled independently");
+Check(!cardOnly.TeeEnabled && cardOnly.CardEnabled, "card can be enabled independently");

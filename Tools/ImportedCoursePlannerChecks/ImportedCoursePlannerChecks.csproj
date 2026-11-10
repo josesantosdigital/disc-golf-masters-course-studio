@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Runtime/ImportedCoursePlanner.cs" Link="ImportedCoursePlanner.cs" />
+    <Compile Include="../../Runtime/ImportedLieHeightPolicy.cs" Link="ImportedLieHeightPolicy.cs" />
   </ItemGroup>
 </Project>

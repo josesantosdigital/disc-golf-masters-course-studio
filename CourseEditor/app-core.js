@@ -77,7 +77,7 @@ function defaultHole(sourceHole, index, count, courseId) {
     par: Number(source.par) || 3, lengthMeters: Number(source.lengthMeters) || 70,
     pinVariant: source.pinVariant || "Default", teeVariant: source.teeVariant || "Default",
     teeOffset: { right: 0, up: 0, forward: 0 }, basketOffset: { right: 0, up: 0, forward: 0 },
-    teeYawDegrees: 0, basketYawDegrees: 0, teeEnabled: true, basketEnabled: true,
+    teeYawDegrees: 0, basketYawDegrees: 0, teeEnabled: false, cardEnabled: false, basketEnabled: true,
     shotLimit: 0, obZones: [], mapAnchors: {
       tee: { x: x, y: y },
       basket: { x: x + Math.cos(originAngle) * 0.22, y: y - Math.sin(originAngle) * 0.22 },

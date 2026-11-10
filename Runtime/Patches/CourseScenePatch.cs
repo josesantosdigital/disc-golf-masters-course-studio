@@ -53,6 +53,7 @@ internal static class CourseScenePatch
         if (custom == null)
         {
             CourseScenePatcher.RestoreAll();
+            CourseScenePatcher.HideOriginalCourseTeeArt(courseManager);
             return;
         }
 
@@ -304,13 +305,14 @@ internal static partial class CourseScenePatcher
             WakeMovedBasketChains(basket);
 
             SetVisible(tee.gameObject, holeDefinition.TeeEnabled);
+            SetTeeSignVisible(tee, holeDefinition.CardEnabled && string.IsNullOrWhiteSpace(holeDefinition.CardImage));
             SetVisible(basket.gameObject, holeDefinition.BasketEnabled);
             holeSettings.activePinVariant = pinVariant;
             holeSettings.activeTeeVariant = teeVariant;
             basket.par = holeDefinition.Par;
 
             AddObZones(holeSettings, teeStart, holeDefinition.ObZones);
-            if (holeDefinition.TeeEnabled && !string.IsNullOrWhiteSpace(holeDefinition.CardImage))
+            if (holeDefinition.CardEnabled && !string.IsNullOrWhiteSpace(holeDefinition.CardImage))
                 AddTeeCard(custom.Definition, holeDefinition.CardImage, tee.transform, right, forward);
         }
 
@@ -338,6 +340,7 @@ internal static partial class CourseScenePatcher
     public static void RestoreSnapshots()
     {
         CourseSceneCardCapture.Cancel();
+        RunupCameraDiagnostics.Reset();
         ImportedAudioSurfacePatch.Reset();
         ImportedFoliageInteraction.Reset();
         ImportedMapPhysicsSupport.Restore();
@@ -501,6 +504,7 @@ internal static partial class CourseScenePatcher
             HasSkyboxSnapshot = false;
         }
 
+        ImportedEmissionFilter.RestoreAll(message => Plugin.LogSource.LogWarning(message));
         ImportedLitMaterials.RestoreAll(message => Plugin.LogSource.LogWarning(message));
 
         foreach (var material in TemporaryMaterials)
@@ -728,6 +732,7 @@ internal static partial class CourseScenePatcher
             }
             WakeMovedBasketChains(basket);
             SetVisible(tee.gameObject, holeDefinition.TeeEnabled);
+            SetTeeSignVisible(tee, false);
             SetVisible(basket.gameObject, holeDefinition.BasketEnabled);
             holeSettings.activePinVariant = pinVariant;
             holeSettings.activeTeeVariant = teeVariant;
@@ -740,23 +745,8 @@ internal static partial class CourseScenePatcher
             AddObZones(holeSettings, teeStart, holeDefinition.ObZones);
             var signImage = string.IsNullOrWhiteSpace(holeDefinition.CardImage)
                 ? custom.Definition.CourseCardImage : holeDefinition.CardImage;
-            if (holeDefinition.TeeEnabled && !string.IsNullOrWhiteSpace(signImage) &&
-                AddImportedTeeSign(custom.Definition, signImage, tee.transform, right, forward))
-            {
-                // The stock sign belongs to the base course and can be left
-                // floating after its supporting scene geometry is hidden.
-                try
-                {
-                    var oldSign = tee.teesign;
-                    if (oldSign != null)
-                    {
-                        var id = oldSign.GetInstanceID();
-                        if (!RendererSnapshots.ContainsKey(id)) RendererSnapshots[id] = new RendererSnapshot(oldSign, oldSign.enabled);
-                        oldSign.enabled = false;
-                    }
-                }
-                catch (Exception ex) { Plugin.LogSource.LogWarning($"Could not hide the base-course tee sign: {ex.Message}"); }
-            }
+            if (holeDefinition.CardEnabled && !string.IsNullOrWhiteSpace(signImage))
+                AddImportedTeeSign(custom.Definition, signImage, tee.transform, right, forward);
         }
 
         if (autoHoles != null)
@@ -1302,6 +1292,21 @@ internal static partial class CourseScenePatcher
                 return false;
             }
 
+            // An upward ray can miss the back face of a floor or roof. Cast
+            // down from above the standing area too, ending above the sampled
+            // ground so that the supporting floor itself is not an obstruction.
+            // Keep hits on the same mesh collider: one combined mesh may hold
+            // both the ground and the storey above it.
+            var downwardHits = Physics.RaycastAll(point + Vector3.up * 4.2f, Vector3.down, 4.08f, ~0, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < downwardHits.Length; i++)
+            {
+                var collider = downwardHits[i].collider;
+                if (collider == null || collider.isTrigger || collider.gameObject.scene.handle != scene.handle)
+                    continue;
+                overheadBlocked = true;
+                return false;
+            }
+
             var nearby = Physics.OverlapSphere(point + Vector3.up * 0.9f, 0.85f, ~0, QueryTriggerInteraction.Ignore);
             for (var i = 0; i < nearby.Length; i++)
             {
@@ -1704,6 +1709,38 @@ internal static partial class CourseScenePatcher
                 RendererSnapshots[key] = new RendererSnapshot(renderer, renderer.enabled);
             renderer.enabled = visible;
         }
+    }
+
+    private static void SetTeeSignVisible(TeePadBehaviour tee, bool visible)
+    {
+        try
+        {
+            if (tee == null || tee.teesign == null) return;
+            var sign = tee.teesign;
+            var id = sign.GetInstanceID();
+            if (!RendererSnapshots.ContainsKey(id)) RendererSnapshots[id] = new RendererSnapshot(sign, sign.enabled);
+            sign.enabled = visible;
+        }
+        catch (Exception ex) { Plugin.LogSource.LogWarning($"Could not update tee sign visibility: {ex.Message}"); }
+    }
+
+    internal static void HideOriginalCourseTeeArt(CourseManager courseManager)
+    {
+        try
+        {
+            if (courseManager == null || courseManager.holeList == null) return;
+            foreach (var hole in courseManager.holeList)
+            {
+                if (hole == null) continue;
+                var variants = hole.teeVariants;
+                if (variants != null)
+                    foreach (var tee in variants)
+                        if (tee != null) { SetVisible(tee.gameObject, false); SetTeeSignVisible(tee, false); }
+                var active = hole.ActiveTeepad;
+                if (active != null) { SetVisible(active.gameObject, false); SetTeeSignVisible(active, false); }
+            }
+        }
+        catch (Exception ex) { Plugin.LogSource.LogWarning($"Could not hide original-course tee artwork: {ex.Message}"); }
     }
 
     private static HoleSettings GetCurrentHole(CourseManager courseManager, int startHoleIndex, int holeCount)

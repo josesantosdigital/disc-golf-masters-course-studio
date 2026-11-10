@@ -92,7 +92,7 @@ try {
             PluginDirectory = $samplePluginRoot
         }
 
-        Invoke-Native 'Course Editor and map-catalog tests' $node @('--test', '.\Tools\TestCourseEditorExport.cjs', '.\Tools\TestMapCatalog.cjs', '.\Tools\TestMapLightingSettings.cjs')
+        Invoke-Native 'Course Editor and map-catalog tests' $node @('--test', '.\Tools\TestCourseEditorExport.cjs', '.\Tools\TestMapCatalog.cjs', '.\Tools\TestMapLightingSettings.cjs', '.\Tools\TestTeeCardSettings.cjs')
         Write-Host "`n=== CourseEditor JavaScript syntax ==="
         foreach ($script in (Get-ChildItem -LiteralPath (Join-Path $projectRoot 'CourseEditor') -Filter '*.js' -File -Recurse)) {
             Invoke-Native $script.FullName $node @('--check', $script.FullName)

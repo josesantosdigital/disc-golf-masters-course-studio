@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.110 development
+- Extend the existing read-only run-up camera trace to cover longer run-ups and the release moment.
+
+## 0.5.109 development
+- Add bounded, read-only run-up camera orientation diagnostics for imported maps. The cause of the reported wrong-facing camera remains under investigation; no camera or input behavior is changed.
+
+## 0.5.108 development
+- Add a double-click setup that finds the Steam installation, installs the custom map loader and editor, and downloads verified BepInEx and a portable Node runtime when needed. Existing BepInEx and player courses are preserved. Clean real-game installation remains unverified.
+
+## 0.5.107 development
+- Add per-hole tee artwork and tee-card visibility controls, defaulting to off, and hide original-course tee artwork in offline play while retaining gameplay positions.
+- Improve imported-map player lie placement so a supported disc inside a multi-level structure need not put the next player on a higher floor. Gameplay coverage remains limited.
+- Add optional imported-map controls for reducing local lights, suppressing selected emissive textures, and hiding dedicated light-fixture meshes. The 711 configuration is player data and is not bundled; its latest lighting adjustment has improved but not eliminated the reported glare.
+- Preserve new lighting and per-hole settings through the editor and layout converter. Further clean-install and gameplay testing is required.
+
 ## 0.5.102 development
 - Add optional `layoutGroundColliderExclusions` name fragments for automatic imported-map hole sampling. The 711 DGC course now excludes its giant decorative grass `Terrain` collider, which dominated the previous layout candidates and placed holes outside the city. The option is available in Course Studio map settings and only changes auto-layout sampling; excluded surfaces remain collidable during play.
 

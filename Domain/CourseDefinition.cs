@@ -176,7 +176,10 @@ internal sealed class HoleDefinition
     public float BasketYawDegrees { get; init; }
 
     [JsonPropertyName("teeEnabled")]
-    public bool TeeEnabled { get; init; } = true;
+    public bool TeeEnabled { get; init; }
+
+    [JsonPropertyName("cardEnabled")]
+    public bool CardEnabled { get; init; }
 
     [JsonPropertyName("basketEnabled")]
     public bool BasketEnabled { get; init; } = true;
@@ -316,6 +319,15 @@ internal sealed class MapLightingDefinition
     [JsonPropertyName("localLightIntensityMultiplier")]
     public float LocalLightIntensityMultiplier { get; init; } = 1f;
 
+    [JsonPropertyName("suppressedEmissionTextures")]
+    public List<string> SuppressedEmissionTextures { get; init; } = new();
+
+    [JsonPropertyName("hiddenLightFixtureTextures")]
+    public List<string> HiddenLightFixtureTextures { get; init; } = new();
+
+    [JsonPropertyName("suppressedLightRoots")]
+    public List<string> SuppressedLightRoots { get; init; } = new();
+
     [JsonPropertyName("albedoBrightness")]
     public float AlbedoBrightness { get; init; } = 1.5f;
 
@@ -347,6 +359,12 @@ internal sealed class MapLightingDefinition
             throw new InvalidDataException("mapLighting.keyLightIntensity must be between 0 and 5.");
         if (!float.IsFinite(LocalLightIntensityMultiplier) || LocalLightIntensityMultiplier is < 0 or > 5)
             throw new InvalidDataException("mapLighting.localLightIntensityMultiplier must be between 0 and 5.");
+        if (SuppressedEmissionTextures != null && (SuppressedEmissionTextures.Count > 32 || SuppressedEmissionTextures.Any(name => string.IsNullOrWhiteSpace(name) || name.Length > 128)))
+            throw new InvalidDataException("mapLighting.suppressedEmissionTextures must contain at most 32 non-empty texture names of at most 128 characters.");
+        if (HiddenLightFixtureTextures != null && (HiddenLightFixtureTextures.Count > 32 || HiddenLightFixtureTextures.Any(name => string.IsNullOrWhiteSpace(name) || name.Length > 128)))
+            throw new InvalidDataException("mapLighting.hiddenLightFixtureTextures must contain at most 32 non-empty texture names of at most 128 characters.");
+        if (SuppressedLightRoots != null && (SuppressedLightRoots.Count > 32 || SuppressedLightRoots.Any(path => string.IsNullOrWhiteSpace(path) || path.Length > 256)))
+            throw new InvalidDataException("mapLighting.suppressedLightRoots must contain at most 32 non-empty hierarchy paths of at most 256 characters.");
         if (!float.IsFinite(AlbedoBrightness) || AlbedoBrightness is < 0.5f or > 3f)
             throw new InvalidDataException("mapLighting.albedoBrightness must be between 0.5 and 3.");
         if (!float.IsFinite(KeyLightYawDegrees) || !float.IsFinite(KeyLightPitchDegrees) || KeyLightPitchDegrees is < -89 or > 89)

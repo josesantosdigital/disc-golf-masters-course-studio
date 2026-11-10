@@ -20,13 +20,16 @@ test("editing imported map settings serializes terrain and vegetation options", 
     "map-key-intensity": { value: "2" }, "map-key-yaw": { value: "-30" }, "map-key-pitch": { value: "50" }
   };
   let saves = 0;
-  const state = { draft: { mapLighting: { forceTreeMeshLods: true, repairTerrainMaterials: true, preserveLightmaps: false } } };
+  const state = { draft: { mapLighting: { forceTreeMeshLods: true, repairTerrainMaterials: true, preserveLightmaps: false, suppressedEmissionTextures: ["BrightNoiseLight"], hiddenLightFixtureTextures: ["CeilingLight_e"], suppressedLightRoots: ["Enviroment/711"] } } };
   const context = vm.createContext({ state, byId: id => controls[id], clamp: (n, min, max) => Math.min(max, Math.max(min, n)), saveState: () => saves++, defaultMapLighting: () => ({}) });
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../CourseEditor/app-settings.js"), "utf8"), context);
   vm.runInContext("setImportedMapLighting()", context);
   assert.equal(state.draft.mapLighting.forceTreeMeshLods, true);
   assert.equal(state.draft.mapLighting.repairTerrainMaterials, true);
   assert.equal(state.draft.mapLighting.preserveLightmaps, false);
+  assert.deepEqual(state.draft.mapLighting.suppressedEmissionTextures, ["BrightNoiseLight"]);
+  assert.deepEqual(state.draft.mapLighting.hiddenLightFixtureTextures, ["CeilingLight_e"]);
+  assert.deepEqual(state.draft.mapLighting.suppressedLightRoots, ["Enviroment/711"]);
   assert.equal(state.draft.mapLighting.disableCameraOcclusionCulling, false);
   assert.equal(state.draft.mapLighting.generateTreeCanopyColliders, true);
   assert.equal(state.draft.mapLighting.experimentalFoliageInteractions, true);

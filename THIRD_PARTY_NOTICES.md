@@ -25,7 +25,7 @@ These are technical distribution facts for a qualified reviewer, not a legal con
 
 ### Proposed distribution surface for review
 
-The planned public release has two project-owned distribution forms: the GitHub source repository, and a versioned Course Studio ZIP containing the plugin DLL, editor, converter tools, documentation, project source, and notices. Neither form includes BepInEx, Il2CppInterop, Harmony, Unity, or DGM runtime assemblies; users obtain the game and BepInEx separately. The repository is currently private and the ZIP remains marked DRAFT until both release gates close.
+The intended distribution has two project-owned forms: the GitHub source repository, and a versioned Course Studio ZIP containing the plugin DLL, editor, converter tools, documentation, project source, and notices. Neither form includes BepInEx, Il2CppInterop, Harmony, Unity, or DGM runtime assemblies; users obtain the game separately, and the setup can download the official BepInEx build. The beta is experimental and qualified review of the dependency distribution questions remains outstanding.
 
 Course authors can separately create per-course ZIPs. A layout-only package contains course JSON and its card; an imported-map package can additionally contain the scene and dependency bundles only when the author records redistribution permission and a source reference. These course packages do not include the Course Studio plugin or its runtime dependencies. Course-sharing links may also be posted through the Discord workflow documented in `docs/PORTING_GUIDE.md`; the author remains responsible for rights to each map and its assets.
 

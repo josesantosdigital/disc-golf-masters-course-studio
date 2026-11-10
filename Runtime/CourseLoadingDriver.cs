@@ -16,6 +16,8 @@ public sealed class CourseLoadingDriver : MonoBehaviour
         catch (Exception ex) { MapSceneRuntime.FailLoading(ex); }
         try { CourseSceneCardCapture.Tick(); }
         catch (Exception ex) { Plugin.LogSource.LogWarning($"Course card capture failed: {ex.Message}"); CourseSceneCardCapture.Cancel(); }
+        try { RunupCameraDiagnostics.Tick(); }
+        catch (Exception ex) { Plugin.LogSource.LogWarning($"Run-up camera diagnostic failed: {ex.Message}"); RunupCameraDiagnostics.Reset(); }
         try { CourseLoadingOverlay.Tick(); }
         catch (Exception ex) { Plugin.LogSource.LogWarning($"Loading screen update failed: {ex.Message}"); CourseLoadingOverlay.Cancel(); }
     }

@@ -62,6 +62,33 @@ catch {
 }
 
 if ($course.schemaVersion -notin @(1, 2)) { Add-Error 'schemaVersion must be 1 or 2.' }
+if ($null -ne $course.mapLighting -and $null -ne $course.mapLighting.suppressedEmissionTextures) {
+    $names = $course.mapLighting.suppressedEmissionTextures
+    if ($names -isnot [array] -or $names.Count -gt 32) { Add-Error 'mapLighting.suppressedEmissionTextures must be an array of at most 32 texture names.' }
+    else {
+        foreach ($name in $names) {
+            if ($name -isnot [string] -or [string]::IsNullOrWhiteSpace($name) -or $name.Length -gt 128) { Add-Error 'Invalid suppressed emission texture name.' }
+        }
+    }
+}
+if ($null -ne $course.mapLighting -and $null -ne $course.mapLighting.hiddenLightFixtureTextures) {
+    $names = $course.mapLighting.hiddenLightFixtureTextures
+    if ($names -isnot [array] -or $names.Count -gt 32) { Add-Error 'mapLighting.hiddenLightFixtureTextures must be an array of at most 32 texture names.' }
+    else {
+        foreach ($name in $names) {
+            if ($name -isnot [string] -or [string]::IsNullOrWhiteSpace($name) -or $name.Length -gt 128) { Add-Error 'Invalid light fixture texture name.' }
+        }
+    }
+}
+if ($null -ne $course.mapLighting -and $null -ne $course.mapLighting.suppressedLightRoots) {
+    $roots = $course.mapLighting.suppressedLightRoots
+    if ($roots -isnot [array] -or $roots.Count -gt 32) { Add-Error 'mapLighting.suppressedLightRoots must be an array of at most 32 hierarchy paths.' }
+    else {
+        foreach ($root in $roots) {
+            if ($root -isnot [string] -or [string]::IsNullOrWhiteSpace($root) -or $root.Length -gt 256) { Add-Error 'Invalid suppressed light root path.' }
+        }
+    }
+}
 if ($course.id -isnot [string] -or $course.id -notmatch '^[A-Za-z0-9_-]{1,48}$') {
     Add-Error 'id must contain 1-48 ASCII letters, digits, underscores, or hyphens.'
 }
@@ -113,6 +140,10 @@ foreach ($hole in $holes) {
     }
     if ($null -ne $hole.shotLimit -and (-not (Test-Number $hole.shotLimit) -or [double]$hole.shotLimit -lt 0 -or [double]$hole.shotLimit -gt 20 -or [double]$hole.shotLimit -ne [math]::Truncate([double]$hole.shotLimit))) {
         Add-Error "holes[$holeIndex].shotLimit must be an integer from 0 to 20."
+    }
+    foreach ($visibility in @('teeEnabled', 'cardEnabled', 'basketEnabled')) {
+        $value = $hole.$visibility
+        if ($null -ne $value -and $value -isnot [bool]) { Add-Error "holes[$holeIndex].$visibility must be true or false." }
     }
     $zones = @()
     if ($null -ne $hole.obZones) { $zones = @($hole.obZones) }

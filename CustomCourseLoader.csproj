@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <Compile Remove=".tools/**/*.cs" />
+    <Compile Remove="Tools/OneClickBootstrap.cs" />
+    <Compile Remove="Tools/AimClampPolicyChecks/**/*.cs" />
     <Compile Remove="Tools/FoliageGeometryChecks/**/*.cs" />
     <Compile Remove="Tools/PersonalBestChecks/**/*.cs" />
     <Compile Remove="Tools/CourseLoadingChecks/**/*.cs" />

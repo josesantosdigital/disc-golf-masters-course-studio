@@ -2,7 +2,7 @@
 
 ## Confirmed development baseline
 
-This baseline is specific to the development PC and is not a minimum-version or compatibility promise. Version 0.5.102 is built and installed while DGM was closed. It adds a configurable auto-layout ground-collider exclusion and uses configured map bounds for 711; gameplay confirmation is pending. The latest local BepInEx log starts loader 0.5.101 and predates that install, so it is not evidence for current 711 placement. The user controls all gameplay checks; do not launch DGM for release validation.
+This baseline is specific to the development PC and is not a minimum-version or compatibility promise. Version 0.5.107 was built and installed locally; the user later reported that DGM had been open during installation. Offline courses hide tee and card artwork by default, with independent per-hole options for custom layouts. The local 711 configuration disables imported non-directional lights and hides dedicated ceiling and basement fixture renderers; base and supplemental lighting remain. The user reports that the glare improved but is not gone. Broader in-game checks remain pending.
 
 ## Historical baseline observations
 
@@ -22,11 +22,11 @@ The 0.5.24 Tree Land round produced user-confirmed shrub/leaf reactions and foli
 | Managed runtime reported by BepInEx | .NET 6.0.7; the plugin target remains net6.0 for this host |
 | SDK for current contributor checks | CI is configured for the supported .NET 10 SDK. The local .NET 6 SDK remains a legacy fallback for pure checks; the .NET 10 CI run has not yet been observed for this candidate |
 | Node.js used for the local editor server | 24.22.1 |
-| Current installed Course Studio DLL | 0.5.102, target framework net6.0; SHA-256 `D4385A5FBC08DB86188F76DE44C3637E7EED3BCA71F948764110D913D7A40208`; built and installed while DGM was closed; 711 city placement needs a manual check |
+| Current installed Course Studio DLL | 0.5.107, target framework net6.0; SHA-256 `68BEFD12A5C88A1428B59CE38F51209094886CD58A44B237E8D054B7082876CF`; user reported DGM was open during installation; broader gameplay acceptance pending |
 | Preserved rollback DLLs | 0.5.95 at `CustomCourseLoader/.tools/recovery/lighting-source-0.5.96-20261106/CustomCourseLoader.0.5.95.atomic-backup.dll`; earlier versions remain in versioned recovery folders |
-| Current source candidate | 0.5.102; Release build succeeded with zero warnings/errors. The v19 DRAFT passes the full local release preflight using SDK 6.0.428. GitHub Actions run 42338054542 passed on .NET 10 for commit `b88ef99`; later candidate changes are documentation-only. All 0.5.102 gameplay behavior remains unverified |
-| Most recent imported-map run | The latest available local log is a 0.5.101 711 session with whole-scene bounds and outer-grass candidate positions. The 0.5.102 DLL and course definition were installed later; no newer runtime log is present. On 0.5.95, the user confirmed the city-top snap fix. Southside glare, Tiny Isle water, and all current candidate map behavior still need manual checking |
-| Latest BepInEx log | `BepInEx/LogOutput.log` is timestamped before the 0.5.102 install and starts loader 0.5.101. Treat it only as historical evidence; it cannot verify the current layout filter. Keep gameplay verification manual; do not launch DGM |
+| Current source candidate | 0.5.107; Release build, fixture material checks, converter, and disposable fresh/update install checks passed. The v19 0.5.102 DRAFT does not include these changes. |
+| Most recent imported-map run | The user reported 711 storefront glare persisted on 0.5.106. That session's log confirmed suppression of 44 targeted lights and 58 particle renderers. The 0.5.107 configuration disables all imported local lights and dedicated fixture meshes; visual verification remains pending. |
+| Latest BepInEx log | `BepInEx/LogOutput.log` records a 0.5.106 711 session and predates installation of 0.5.107. |
 | Built-in catalog evidence | 0.5.22 startup exported 3 original courses with 11 layouts |
 | Failed map-load log | 0.5.18 |
 

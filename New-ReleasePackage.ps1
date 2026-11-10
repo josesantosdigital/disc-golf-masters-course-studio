@@ -2,7 +2,8 @@
 param(
     [string]$GameRoot,
     [string]$OutputDirectory,
-    [switch]$Draft
+    [switch]$Draft,
+    [switch]$Prerelease
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,14 +17,15 @@ if ($null -eq $pluginVersionSource) { throw 'Could not find Plugin.cs to read th
 $versionMatch = Select-String -Path $pluginVersionSource.FullName -Pattern 'PluginVersion\s*=\s*"([^"]+)"' | Select-Object -First 1
 if ($null -eq $versionMatch) { throw 'Could not read PluginVersion from Plugin.cs.' }
 $version = $versionMatch.Matches[0].Groups[1].Value
-$suffix = if ($Draft) { '-DRAFT' } else { '' }
+if ($Draft -and $Prerelease) { throw 'Choose either -Draft or -Prerelease.' }
+$suffix = if ($Draft) { '-DRAFT' } elseif ($Prerelease) { '-BETA' } else { '' }
 $packageName = "DiscGolfMasters-CourseStudio-$version$suffix"
 $archivePath = Join-Path $outputFull ($packageName + '.zip')
 
 if (-not $Draft -and -not (Test-Path -LiteralPath (Join-Path $projectRoot 'LICENSE') -PathType Leaf)) {
     throw 'A public package requires a project LICENSE file. Use -Draft to create a local review archive during release validation.'
 }
-if (-not $Draft) {
+if (-not $Draft -and -not $Prerelease) {
     $checklistPath = Join-Path $projectRoot 'docs\RELEASE_CHECKLIST.md'
     if (-not (Test-Path -LiteralPath $checklistPath -PathType Leaf)) {
         throw 'A public package requires docs/RELEASE_CHECKLIST.md with all release checks complete.'
@@ -95,7 +97,7 @@ try {
     [IO.File]::WriteAllText((Join-Path $stagingRoot 'BepInEx\plugins\CustomCourseLoader\CourseEditor\catalog.js'), $catalogPlaceholder, [Text.UTF8Encoding]::new($false))
     Copy-FileIntoPackage (Join-Path $projectRoot 'Tools\Samples\SampleMeadowNine.json') 'BepInEx\plugins\CustomCourseLoader\Courses\SampleMeadowNine.json'
 
-    foreach ($item in @('.gitignore', '.gitattributes', 'README.md', 'CHANGELOG.md', 'THIRD_PARTY_NOTICES.md', 'RENDERING.md', 'AGENTS.md', 'CustomCourseLoader.csproj', 'Install-CourseStudio.ps1', 'build.ps1', 'InstallUpdateAfterExit.ps1', 'New-ReleasePackage.ps1')) {
+    foreach ($item in @('.gitignore', '.gitattributes', 'README.md', 'CHANGELOG.md', 'THIRD_PARTY_NOTICES.md', 'RENDERING.md', 'AGENTS.md', 'CustomCourseLoader.csproj', 'Install-CourseStudio.ps1', 'Setup-CourseStudio.ps1', 'Setup-CourseStudio.cmd', 'build.ps1', 'InstallUpdateAfterExit.ps1', 'New-ReleasePackage.ps1')) {
         $sourcePath = Join-Path $projectRoot $item
         if (Test-Path -LiteralPath $sourcePath -PathType Leaf) {
             Copy-FileIntoPackage $sourcePath ('Source\CustomCourseLoader\' + $item)
@@ -104,6 +106,8 @@ try {
     }
     Copy-FileIntoPackage (Join-Path $projectRoot 'AGENTS.md') 'AGENTS.md'
     Copy-FileIntoPackage (Join-Path $projectRoot 'Install-CourseStudio.ps1') 'Install-CourseStudio.ps1'
+    Copy-FileIntoPackage (Join-Path $projectRoot 'Setup-CourseStudio.ps1') 'Setup-CourseStudio.ps1'
+    Copy-FileIntoPackage (Join-Path $projectRoot 'Setup-CourseStudio.cmd') 'Setup-CourseStudio.cmd'
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $projectRoot 'CourseEditor') -File -Recurse) {
         $relative = Get-RelativeFilePath (Join-Path $projectRoot 'CourseEditor') $file.FullName
         if ($relative -ieq 'catalog.js' -or $relative -match '^assets[\\/]maps[\\/]') { continue }
@@ -112,14 +116,14 @@ try {
     [IO.File]::WriteAllText((Join-Path $stagingRoot 'Source\CustomCourseLoader\CourseEditor\catalog.js'), $catalogPlaceholder, [Text.UTF8Encoding]::new($false))
     foreach ($file in Get-ChildItem -LiteralPath $projectRoot -Filter '*.cs' -File -Recurse) {
         $relative = Get-RelativeFilePath $projectRoot $file.FullName
-        if ($relative -match '(^|[\\/])(bin|obj|\.tools)[\\/]') { continue }
+        if ($relative -match '(^|[\\/])(bin|obj|\.tools)[\\/]' -or $relative -match '^Tools[\\/]AimClampPolicyChecks[\\/]') { continue }
         Copy-FileIntoPackage $file.FullName ('Source\CustomCourseLoader\' + $relative)
     }
     foreach ($directory in @('docs', 'Tools')) {
         $sourceDirectory = Join-Path $projectRoot $directory
         foreach ($file in Get-ChildItem -LiteralPath $sourceDirectory -File -Recurse) {
             $relative = Get-RelativeFilePath $projectRoot $file.FullName
-            if ($relative -match '(^|[\\/])(bin|obj)[\\/]') { continue }
+            if ($relative -match '(^|[\\/])(bin|obj)[\\/]' -or $relative -match '^Tools[\\/]AimClampPolicyChecks[\\/]') { continue }
             Copy-FileIntoPackage $file.FullName ('Source\CustomCourseLoader\' + $relative)
             Copy-FileIntoPackage $file.FullName $relative
         }
@@ -142,6 +146,16 @@ try {
         ) -join [Environment]::NewLine
         [IO.File]::WriteAllText((Join-Path $stagingRoot 'DRAFT-RELEASE-STATUS.txt'), $draftStatus, [Text.UTF8Encoding]::new($false))
     }
+    if ($Prerelease) {
+        $betaStatus = @(
+            'BETA PRE-RELEASE — EXPERIMENTAL',
+            "Plugin version: $version",
+            'The clean real-game install and full gameplay acceptance have not been completed.',
+            'Third-party LGPL distribution questions remain under review; see THIRD_PARTY_NOTICES.md.',
+            'Imported map files and BepInEx are not included in this package.'
+        ) -join [Environment]::NewLine
+        [IO.File]::WriteAllText((Join-Path $stagingRoot 'BETA-RELEASE-STATUS.txt'), $betaStatus, [Text.UTF8Encoding]::new($false))
+    }
 
     $manifest = [ordered]@{
         package = $packageName
@@ -150,6 +164,7 @@ try {
         pluginVersion = $version
         courseEditorVersion = $version
         draft = [bool]$Draft
+        prerelease = [bool]$Prerelease
         generatedUtc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
         target = 'Windows PC · Disc Golf Masters · BepInEx 6 IL2CPP'
         bundledUserMapAssets = $false
@@ -160,7 +175,7 @@ try {
     $hash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash
     [IO.File]::WriteAllText(($archivePath + '.sha256'), "$hash  $([IO.Path]::GetFileName($archivePath))", [Text.UTF8Encoding]::new($false))
     try {
-        & (Join-Path $projectRoot 'Tools\TestReleasePackage.ps1') -ArchivePath $archivePath -ExpectedVersion $version -Draft:$Draft
+        & (Join-Path $projectRoot 'Tools\TestReleasePackage.ps1') -ArchivePath $archivePath -ExpectedVersion $version -Draft:$Draft -Prerelease:$Prerelease
     }
     catch {
         Write-Host "Archive audit error: $($_.Exception.ToString())"

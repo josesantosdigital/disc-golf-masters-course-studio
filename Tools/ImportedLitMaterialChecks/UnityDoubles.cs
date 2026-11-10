@@ -1,5 +1,10 @@
 namespace UnityEngine;
 
+public readonly record struct Color(float r, float g, float b, float a)
+{
+    public static Color black => new(0, 0, 0, 1);
+}
+
 // Minimal stateful doubles. In particular shader assignment clears keyword state,
 // and CopyPropertiesFromMaterial deliberately does not copy shader/override tags.
 public class Object
@@ -54,6 +59,8 @@ public class Material : Object
         property == "_DetailMap" ? !shader.Native : true;
     public float GetFloat(string property) => Properties.TryGetValue(property, out var value) ? (float)value : 0f;
     public void SetFloat(string property, float value) => Properties[property] = value;
+    public Color GetColor(string property) => Properties.TryGetValue(property, out var value) && value is Color color ? color : default;
+    public void SetColor(string property, Color value) => Properties[property] = value;
     public object GetTexture(string property) => Properties.TryGetValue(property, out var value) ? value : null;
     public void SetTexture(string property, object value) => Properties[property] = value;
     public void EnableKeyword(string value) => keywords.Add(value);

@@ -1,7 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
+$portableNode = Join-Path $PSScriptRoot 'runtime\node.exe'
 $nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
-if (-not $nodeCommand) {
+$nodePath = if (Test-Path -LiteralPath $portableNode -PathType Leaf) { $portableNode } elseif ($nodeCommand) { $nodeCommand.Source } else { $null }
+if (-not $nodePath) {
     throw "Node.js is required to serve the local Course Studio page. Install Node.js LTS, then run this launcher again."
 }
 
@@ -25,7 +27,7 @@ $previousPort = $env:DGM_COURSE_EDITOR_PORT
 $serverProcess = $null
 try {
     $env:DGM_COURSE_EDITOR_PORT = [string]$port
-    $serverProcess = Start-Process -FilePath $nodeCommand.Source `
+    $serverProcess = Start-Process -FilePath $nodePath `
         -ArgumentList ('"' + $serverScript + '"') `
         -WorkingDirectory $PSScriptRoot `
         -WindowStyle Hidden `

@@ -90,19 +90,20 @@ function Convert-MapLighting([object]$Lighting) {
     # Keep this contract aligned with MapLightingDefinition and the interchange schema.
     $booleanProperties = @(
         'preserveLightmaps', 'supplementLighting', 'forceFallbackMaterials', 'forceUnlitMaterials',
-        'ignoreSourceTint', 'repairTerrainMaterials', 'repairTerrainTextureDetails', 'useBaseSkybox',
+        'ignoreSourceTint', 'repairTerrainMaterials', 'repairTerrainTextureDetails', 'useBaseSkybox', 'disableCameraOcclusionCulling',
         'hideHoloWalls', 'forceTreeMeshLods', 'exportFoliageDiagnostics', 'useLitFoliageMaterials',
         'realtimeMapShadows', 'hideImportedParticles', 'generateTreeCanopyColliders',
         'useGameFoliageShader', 'preferBaseCourseSun', 'experimentalFoliageInteractions'
     )
     $numberRanges = @{
+        localLightIntensityMultiplier = @(0.0, 5.0)
         albedoBrightness = @(0.5, 3.0)
         ambientIntensity = @(0.0, 2.5)
         keyLightIntensity = @(0.0, 5.0)
         keyLightYawDegrees = @(-360000.0, 360000.0)
         keyLightPitchDegrees = @(-89.0, 89.0)
     }
-    $knownProperties = @($booleanProperties) + @($numberRanges.Keys) + @('ambientColor', 'keyLightColor')
+    $knownProperties = @($booleanProperties) + @($numberRanges.Keys) + @('ambientColor', 'keyLightColor', 'suppressedEmissionTextures', 'hiddenLightFixtureTextures', 'suppressedLightRoots')
     foreach ($property in $Lighting.PSObject.Properties.Name) {
         if ($property -notin $knownProperties) { throw "mapLighting contains unsupported property '$property'." }
     }
@@ -121,6 +122,30 @@ function Convert-MapLighting([object]$Lighting) {
     foreach ($property in @('ambientColor', 'keyLightColor')) {
         $value = $Lighting.$property
         if ($null -ne $value) { $converted[$property] = Convert-MapColor $value "mapLighting.$property" }
+    }
+    $textures = $Lighting.suppressedEmissionTextures
+    if ($null -ne $textures) {
+        if ($textures -isnot [array] -or $textures.Count -gt 32) { throw 'mapLighting.suppressedEmissionTextures must be an array of at most 32 names.' }
+        foreach ($name in $textures) {
+            if ($name -isnot [string] -or [string]::IsNullOrWhiteSpace($name) -or $name.Length -gt 128) { throw 'Invalid suppressed emission texture name.' }
+        }
+        $converted['suppressedEmissionTextures'] = @($textures)
+    }
+    $fixtures = $Lighting.hiddenLightFixtureTextures
+    if ($null -ne $fixtures) {
+        if ($fixtures -isnot [array] -or $fixtures.Count -gt 32) { throw 'mapLighting.hiddenLightFixtureTextures must be an array of at most 32 names.' }
+        foreach ($name in $fixtures) {
+            if ($name -isnot [string] -or [string]::IsNullOrWhiteSpace($name) -or $name.Length -gt 128) { throw 'Invalid light fixture texture name.' }
+        }
+        $converted['hiddenLightFixtureTextures'] = @($fixtures)
+    }
+    $roots = $Lighting.suppressedLightRoots
+    if ($null -ne $roots) {
+        if ($roots -isnot [array] -or $roots.Count -gt 32) { throw 'mapLighting.suppressedLightRoots must be an array of at most 32 paths.' }
+        foreach ($root in $roots) {
+            if ($root -isnot [string] -or [string]::IsNullOrWhiteSpace($root) -or $root.Length -gt 256) { throw 'Invalid suppressed light root path.' }
+        }
+        $converted['suppressedLightRoots'] = @($roots)
     }
     return $converted
 }
@@ -192,7 +217,8 @@ for ($index = 0; $index -lt $holes.Count; $index++) {
         teeVariant = $teeVariant
         teeYawDegrees = 0
         basketYawDegrees = 0
-        teeEnabled = $true
+        teeEnabled = $false
+        cardEnabled = $false
         basketEnabled = $true
         obZones = @()
     }
@@ -201,6 +227,10 @@ for ($index = 0; $index -lt $holes.Count; $index++) {
     if ($null -ne $hole.teeEnabled) {
         if ($hole.teeEnabled -isnot [bool]) { throw "holes[$index].teeEnabled must be true or false." }
         $converted.teeEnabled = $hole.teeEnabled
+    }
+    if ($null -ne $hole.cardEnabled) {
+        if ($hole.cardEnabled -isnot [bool]) { throw "holes[$index].cardEnabled must be true or false." }
+        $converted.cardEnabled = $hole.cardEnabled
     }
     if ($null -ne $hole.basketEnabled) {
         if ($hole.basketEnabled -isnot [bool]) { throw "holes[$index].basketEnabled must be true or false." }

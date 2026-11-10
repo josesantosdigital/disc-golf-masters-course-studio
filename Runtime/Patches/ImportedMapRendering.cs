@@ -211,6 +211,7 @@ internal static partial class CourseScenePatcher
         var unlitShader = Shader.Find("Universal Render Pipeline/Unlit");
         var nativeLitShader = Shader.Find(ImportedLitMaterials.TargetShaderName);
         var nativeLitMaterialCount = 0;
+        var emissionCandidates = new List<Material>();
         var nativeLitExamples = new List<string>();
         var nativeLitWarningCount = 0;
         // DGM uses lit cutout materials on its own courses; their alpha-test variant
@@ -288,6 +289,7 @@ internal static partial class CourseScenePatcher
         var shadowRendererCount = 0;
         var preservedParticleCount = 0;
         var hiddenParticleCount = 0;
+        var hiddenFixtureCount = 0;
         var hiddenLightVolumeCount = 0;
         var hiddenSkyboxMeshCount = 0;
         // Do not access LightmapSettings.lightmaps here. On the game's IL2CPP
@@ -436,6 +438,23 @@ internal static partial class CourseScenePatcher
                 if (materials == null)
                     continue;
 
+                try
+                {
+                    if (lighting.HiddenLightFixtureTextures?.Count > 0 && ImportedEmissionFilter.IsDedicatedFixture(materials, lighting.HiddenLightFixtureTextures))
+                    {
+                        var rendererId = renderer.GetInstanceID();
+                        if (!RendererSnapshots.ContainsKey(rendererId))
+                            RendererSnapshots[rendererId] = new RendererSnapshot(renderer, renderer.enabled);
+                        renderer.enabled = false;
+                        hiddenFixtureCount++;
+                        continue;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Plugin.LogSource.LogWarning($"Could not inspect light fixture '{renderer.name}': {ex.Message}");
+                }
+
                 if (lighting.UseBaseSkybox && IsImportedSkyboxRenderer(renderer, materials))
                 {
                     var rendererId = renderer.GetInstanceID();
@@ -519,6 +538,7 @@ internal static partial class CourseScenePatcher
                         continue;
                     }
                     materialCount++;
+                    emissionCandidates.Add(material);
 
                     var shader = material.shader;
                     var shaderName = shader == null ? "<missing>" : shader.name;
@@ -819,7 +839,7 @@ internal static partial class CourseScenePatcher
             $"active lightmap data={activeLightmapSummary}, renderers with out-of-range baked/realtime indices={invalidLightmapRendererCount}, repaired invalid indices={repairedInvalidLightmapRendererCount}, examples={string.Join(" || ", invalidLightmapExamples)}; " +
             $"widened non-batched mesh renderer bounds={widenedRendererBoundsCount}, examples={string.Join(" || ", widenedRendererBoundsExamples)}; " +
             $"static-batch renderer bounds repairs skipped={skippedStaticBatchBoundsCount}, examples={string.Join(" || ", skippedStaticBatchBoundsExamples)}; " +
-            $"directional lights={directionalLightCount}; point lights={pointLightCount}; spot lights={spotLightCount}; adjusted point/spot lights={adjustedLocalLightCount} (intensity x{lighting.LocalLightIntensityMultiplier:F2}); local-light examples={string.Join(" || ", localLightExamples)}; disabled imported cameras={disabledCameraCount}; shadow renderers={shadowRendererCount}; preserved particle materials={preservedParticleCount}; hidden particle renderers={hiddenParticleCount}; hidden incompatible volumetric light renderers={hiddenLightVolumeCount}; hidden source sky meshes={hiddenSkyboxMeshCount}; shaders: {summary}");
+            $"directional lights={directionalLightCount}; point lights={pointLightCount}; spot lights={spotLightCount}; adjusted point/spot lights={adjustedLocalLightCount} (intensity x{lighting.LocalLightIntensityMultiplier:F2}); local-light examples={string.Join(" || ", localLightExamples)}; disabled imported cameras={disabledCameraCount}; shadow renderers={shadowRendererCount}; preserved particle materials={preservedParticleCount}; hidden particle renderers={hiddenParticleCount}; hidden dedicated light fixtures={hiddenFixtureCount}; hidden incompatible volumetric light renderers={hiddenLightVolumeCount}; hidden source sky meshes={hiddenSkyboxMeshCount}; shaders: {summary}");
 
         if (lighting.PreferBaseCourseSun && baseSun != null && baseSun.enabled && baseSun.gameObject.activeInHierarchy)
         {
@@ -905,6 +925,14 @@ internal static partial class CourseScenePatcher
                 : $"Added a DGM fill light and ambient lighting to '{courseName}' alongside its {directionalLightCount} imported directional light(s).");
         }
 
+        if (lighting.SuppressedEmissionTextures?.Count > 0)
+        {
+            var count = 0;
+            foreach (var material in emissionCandidates)
+                if (ImportedEmissionFilter.TrySuppress(material, lighting.SuppressedEmissionTextures, message => Plugin.LogSource.LogWarning(message))) count++;
+            Plugin.LogSource.LogInfo($"Suppressed emission on {count} materials in '{courseName}' using configured texture names.");
+        }
+
         if ((unsupportedMaterialCount > 0 || lighting.ForceFallbackMaterials) && fallbackShader == null)
             Plugin.LogSource.LogWarning($"'{courseName}' needs fallback materials, but no compatible DGM fallback shader was found.");
         if (lighting.ForceUnlitMaterials && !useAlbedoOnly)
@@ -920,10 +948,11 @@ internal static partial class CourseScenePatcher
 
     private static int ApplyImportedLocalLightIntensity(Scene scene, string courseName, MapLightingDefinition lighting)
     {
-        if (lighting == null || Mathf.Approximately(lighting.LocalLightIntensityMultiplier, 1f))
+        if (lighting == null || (Mathf.Approximately(lighting.LocalLightIntensityMultiplier, 1f) && !(lighting.SuppressedLightRoots?.Count > 0)))
             return 0;
 
         var adjustedCount = 0;
+        var suppressedCount = 0;
         Il2CppReferenceArray<GameObject> roots;
         try
         {
@@ -955,7 +984,7 @@ internal static partial class CourseScenePatcher
             for (var lightIndex = 0; lightIndex < lights.Length; lightIndex++)
             {
                 var light = lights[lightIndex];
-                if (light == null || light.type is not (LightType.Point or LightType.Spot))
+                if (light == null || light.type == LightType.Directional)
                     continue;
 
                 try
@@ -966,7 +995,10 @@ internal static partial class CourseScenePatcher
                         snapshot = new ShadowLightSnapshot(light);
                         ShadowLightSnapshots[lightId] = snapshot;
                     }
-                    light.intensity = snapshot.Intensity * lighting.LocalLightIntensityMultiplier;
+                    var suppressed = lighting.SuppressedLightRoots?.Count > 0 &&
+                        ImportedLightPathPolicy.IsSuppressed(DescribeTransformPath(light.transform), lighting.SuppressedLightRoots);
+                    light.intensity = suppressed ? 0f : snapshot.Intensity * lighting.LocalLightIntensityMultiplier;
+                    if (suppressed) suppressedCount++;
                     adjustedCount++;
                 }
                 catch (Exception ex)
@@ -976,7 +1008,7 @@ internal static partial class CourseScenePatcher
             }
         }
 
-        Plugin.LogSource.LogInfo($"Applied imported local-light multiplier before material repair in '{courseName}': adjusted {adjustedCount} point/spot light(s), intensity x{lighting.LocalLightIntensityMultiplier:F2}.");
+        Plugin.LogSource.LogInfo($"Applied imported light settings in '{courseName}': adjusted {adjustedCount} non-directional light(s), suppressed {suppressedCount} under configured roots, other intensity x{lighting.LocalLightIntensityMultiplier:F2}.");
         return adjustedCount;
     }
 

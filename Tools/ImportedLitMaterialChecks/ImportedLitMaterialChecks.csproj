@@ -6,5 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Runtime/ImportedLitMaterials.cs" Link="ImportedLitMaterials.cs" />
+    <Compile Include="../../Runtime/ImportedEmissionFilter.cs" Link="ImportedEmissionFilter.cs" />
+    <Compile Include="../../Runtime/ImportedLightPathPolicy.cs" Link="ImportedLightPathPolicy.cs" />
   </ItemGroup>
 </Project>

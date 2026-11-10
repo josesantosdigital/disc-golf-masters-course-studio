@@ -119,13 +119,15 @@ function renderInspector() {
       '<div class="field-grid">' + field("PAR", "par", Number(hole.par) || 3, "number", 1, 8, 1) +
       field("LENGTH", "lengthMeters", Number(hole.lengthMeters) || 60, "m", 1, 2000, 1) +
       field("SHOT LIMIT", "shotLimit", Number(hole.shotLimit) || 0, "throws", 0, 20, 1, true) + '</div>' +
+      switchRow("Show tee pad", "Show the tee pad artwork in game; the starting position always remains usable.", "teeEnabled", hole.teeEnabled === true) +
+      switchRow("Show hole card", "Show this hole's card beside the tee.", "cardEnabled", hole.cardEnabled === true) +
       '<div class="note-box"><span>↳</span><div>Set shot limit to <b>0</b> for unlimited throws. When the cap is reached, the offline round advances to the next hole.</div></div></div>' +
       '<div class="inspector-block"><div class="inspector-head"><h3>Starting variants</h3><small>BASE SCENE</small></div><div class="field-grid">' +
       selectField("TEE", "teeVariant", ["Default", "Blue", "Red", "Yellow", "Black"], hole.teeVariant || "Default") +
       selectField("PIN", "pinVariant", ["Default", "Blue", "Red", "Yellow", "Black"], hole.pinVariant || "Default") + '</div></div>';
   } else if (state.inspector === "tee") {
     html = '<div class="inspector-block"><div class="inspector-head"><h3>Starting tee</h3><small>HOLE ' + String(state.holeIndex + 1).padStart(2, "0") + '</small></div>' +
-      switchRow("Tee marker", "Remove hides the tee surface in game; Add restores it.", "teeEnabled", hole.teeEnabled !== false) +
+      switchRow("Show tee pad", "Show the tee pad artwork in game; the starting position remains usable.", "teeEnabled", hole.teeEnabled === true) +
       '<div class="field-label" style="margin:14px 0 9px">' + (isImportedMap() ? "POSITION IN MAP WORLD" : "POSITION RELATIVE TO ORIGINAL TEE") + '</div>' +
       (isImportedMap() ? worldPositionFields(hole.mapTeePosition, "mapTeePosition", "teeYawDegrees") : offsetFields(hole.teeOffset, "teeOffset")) +
       '<div class="inspector-actions">' + (hole.teeEnabled === false ? '<button class="inspector-button primary" data-action="add-tee">＋ Add tee</button>' : '<button class="inspector-button danger" data-action="remove-tee">− Remove tee</button>') +
@@ -149,6 +151,7 @@ function renderInspector() {
       }).join("") : '<div class="empty-zones">No custom OB on this hole yet.</div>') + '</div></div></div>';
   } else {
     html = '<div class="inspector-block"><div class="inspector-head"><h3>Tee-side card</h3><small>PER HOLE</small></div>' +
+      switchRow("Show hole card", "Show this hole's card beside the tee.", "cardEnabled", hole.cardEnabled === true) +
       '<canvas id="card-preview" class="card-preview" width="900" height="1200"></canvas><div class="field-grid">' +
       field("CARD SUBTITLE", "cardSubtitle", state.draft.cardSubtitle || "CUSTOM OFFLINE LAYOUT", "text", undefined, undefined, undefined, true) +
       field("HOLE NOTE", "cardNote", hole.cardNote || "", "text", undefined, undefined, undefined, true) + '</div>' +
@@ -210,7 +213,7 @@ function doAction(action, index) {
   if (action === "add-tee") hole.teeEnabled = true;
   if (action === "remove-basket") hole.basketEnabled = false;
   if (action === "add-basket") hole.basketEnabled = true;
-  if (action === "reset-tee") { hole.teeOffset = { right: 0, up: 0, forward: 0 }; hole.teeYawDegrees = 0; hole.teeEnabled = true; if (isImportedMap()) hole.mapTeePosition = mapNormToWorld(mapAnchors(hole).tee); }
+  if (action === "reset-tee") { hole.teeOffset = { right: 0, up: 0, forward: 0 }; hole.teeYawDegrees = 0; if (isImportedMap()) hole.mapTeePosition = mapNormToWorld(mapAnchors(hole).tee); }
   if (action === "reset-basket") { hole.basketOffset = { right: 0, up: 0, forward: 0 }; hole.basketYawDegrees = 0; hole.basketEnabled = true; if (isImportedMap()) hole.mapBasketPosition = mapNormToWorld(mapAnchors(hole).basket); }
   if (action === "start-ob") startDrawingOb();
   if (action === "cancel-ob") cancelOb();
