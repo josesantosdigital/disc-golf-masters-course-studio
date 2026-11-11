@@ -1,14 +1,14 @@
-# Course Studio Mod Toggle 1.0.0
+# Disc Golf Masters Mod Toggle 2.0.0
 
-Temporarily switch the Disc Golf Masters Course Studio loader off or on without deleting installed courses or maps.
+Temporarily disable or re-enable BepInEx and **all** BepInEx mods, including Course Studio and Aim Elevation. Other mod-loading systems are not controlled.
 
 1. Close Disc Golf Masters.
-2. Extract this ZIP, then double-click `Toggle-CourseStudio.cmd`.
-3. If asked, choose the game folder containing `Disc Golf Masters.exe`.
-4. Choose **Yes** to disable, **No** to enable, or **Cancel** to leave it unchanged. Wait for the success message, then start the game.
+2. Extract this ZIP and double-click `Toggle-AllMods.cmd`.
+3. If asked, choose the folder containing `Disc Golf Masters.exe`.
+4. Choose **Yes** to disable all BepInEx mods, **No** to re-enable them, or **Cancel** to leave them unchanged. Wait for the success message, then start the game.
 
-The tool switches `CustomCourseLoader*.dll` files inside the Course Studio plugin folder, including old backup DLLs that BepInEx could otherwise load. It records which files it disabled and restores only those files. It preserves course/map/editor data and does not change the separate Aim Elevation mod or other plugins. Course Studio may still open while disabled, but its custom courses won't load in game.
+The tool switches the game folder's `winhttp.dll` BepInEx Doorstop hook to `winhttp.dll.course-studio-disabled`, and reverses it to re-enable. This preserves mod files, maps and courses. Individually disabled mods remain disabled. If the old Course Studio-only toggle 1.0.0 has a recorded disable, choosing enable restores its recorded loader files before restoring BepInEx startup.
 
-The tool stops if the game is open, files conflict, the plugin folder contains links, or another `CustomCourseLoader*.dll` is found elsewhere under `BepInEx/plugins`. It will not overwrite an existing DLL. If you run the Course Studio installer while disabled, restore or reconcile the existing files before trying again; keep backups if in doubt.
+The tool requires the expected BepInEx IL2CPP Doorstop configuration and refuses linked startup files, conflicting enabled/disabled copies, missing hooks, or an open game. It never overwrites an existing startup hook. A different mod-loading setup may need its own instructions. Do not reinstall BepInEx while disabled without first re-enabling; if both hook files exist, reconcile them before retrying.
 
-For advanced use, run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Toggle-CourseStudio.ps1 -GameRoot 'C:\Games\Disc Golf Masters' -Action Status`, replacing the example game path. Use `-Action Disable` or `-Action Enable` to change state. The tool requires Windows PowerShell and a valid game installation. It does not uninstall BepInEx.
+For advanced use: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Toggle-AllMods.ps1 -GameRoot 'C:\Games\Disc Golf Masters' -Action Status`. Replace the example game path; use `-Action Disable` or `-Action Enable` to change state. This requires Windows PowerShell. The exact packaged files passed disposable fixture tests; startup in the real game with BepInEx disabled has not yet been verified.
