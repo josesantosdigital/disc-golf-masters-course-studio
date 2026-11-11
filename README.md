@@ -1,6 +1,14 @@
 # Disc Golf Masters Course Studio
 
-Course Studio is a local course authoring tool and BepInEx 6 IL2CPP plugin for offline rounds in **Disc Golf Masters**. It edits layouts on original DGM courses and can load compatible Unity scene bundles as imported map terrain.
+Course Studio is a local course editor and custom course loader for offline rounds in **Disc Golf Masters**. Create layouts on original courses or play compatible imported maps. Windows PC only; custom multiplayer is not supported.
+
+## Install and play
+
+1. Close Disc Golf Masters and download the latest Course Studio **Beta setup EXE** from [GitHub Releases](https://github.com/josesantosdigital/disc-golf-masters-course-studio/releases). Run it and select your game folder if asked. This installs the editor and loader together.
+2. Start the game once and open its offline course selector, then use the **Disc Golf Course Studio** desktop shortcut.
+3. Install a separate custom course package or create and export a layout in the editor. Restart the game, open the offline course selector, and choose its custom course card.
+
+Follow the [player guide](docs/PLAYER_GUIDE.md) for step-by-step setup, map installation, editing, exporting, updates, and troubleshooting. For converting a BONELAB PC map, see the [conversion guide](docs/PORTING_GUIDE.md#convert-a-bonelab-pc-map). The installer and loader do not include imported maps; obtain them separately.
 
 ## Get started
 
@@ -39,4 +47,4 @@ Run the command from the source project folder and replace `$gameRoot` with your
 
 ## Release status
 
-Course Studio is in active development. Version 0.5.116 is an experimental beta. The run-up camera correction has been confirmed by a player on one imported course; clean real-game installation, broader course/gameplay acceptance, and review of LGPL-linked dependency distribution questions remain open. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages. DRAFT archives remain for local review; BETA archives identify the experimental distribution separately.
+Course Studio is in active development. Version 0.5.117 is an experimental beta. The run-up camera correction has been confirmed by a player on one imported course; the OB overview-alignment update passed automated checks but has not been verified in game. Clean real-game installation, broader course/gameplay acceptance, and review of LGPL-linked dependency distribution questions remain open. MIT-0 applies to original project code and documentation. Generated game files, imported map assets, original game assets, and player courses are excluded from release packages. DRAFT archives remain for local review; BETA archives identify the experimental distribution separately.

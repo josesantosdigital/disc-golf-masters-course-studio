@@ -13,18 +13,26 @@ Course Studio separates course layout data from imported terrain. A layout conve
 
 The BONELAB pallet converter packages the scene; it does not extract a BONELAB course layout. The official [MarrowSDK level documentation](https://github.com/StressLevelZero/MarrowSDK/blob/main/Docs/Levels.md) describes levels as one or more Unity scenes with environment and gameplay components; it does not document a DGM-style export for tee/basket positions, OB, par, or shot limits. Combine the pallet converter with `ConvertCourseLayoutJson.ps1` when you have a layout export or have mapped the source coordinates into the interchange format. The layout converter supports multiple source games through this common format, but does not parse their native files. Native proprietary exports still need a game-specific adapter that produces interchange JSON. The generic bundle tool only works when a compatible scene AssetBundle is available.
 
-## BONELAB PC pallet
+## Convert a BONELAB PC map
 
-Use the packed PC pallet folder created by BONELAB's Marrow SDK, or a ZIP containing that folder's files. A mod.io page URL is a source reference only: the converter does not download from mod.io. Download the PC version of the mod and extract it first, or point the converter at the locally installed packed pallet folder. The input must contain one `catalog_*.json`, one `.pallet.json`, and the bundles referenced by the catalog. This converter targets PC pallets; Quest-only bundles have not been verified in DGM's Windows player. Marrow SDK's [packing guide](https://github.com/StressLevelZero/MarrowSDK/blob/main/Docs/BuildPallet.md) describes PC packing and says the generated folder can be shared through sites such as mod.io. The converter selects a scene by its Unity scene asset name. It reports available scene names if the selection is wrong. Example:
+1. [Install Course Studio](PLAYER_GUIDE.md#1-install-or-update-course-studio) and close Disc Golf Masters. Download the source map's **PC** pallet ZIP, or locate its installed packed pallet folder. A mod.io page is a source reference: the tool does not download it. Quest-only bundles have not been verified.
+2. Download the Course Studio **release ZIP** from [GitHub Releases](https://github.com/josesantosdigital/disc-golf-masters-course-studio/releases), extract it outside the game folder, and open PowerShell in the extracted folder that contains `Tools`. The one-click setup installs the editor and loader, but the separate ZIP provides these converter scripts.
+3. Run the command below. Replace all example paths with your own. `-ArchivePath` accepts the downloaded ZIP **or** the packed pallet folder. `-PluginDirectory` must point to the `CustomCourseLoader` folder inside the same game installation, not to the game root. Use a new, unique ID made of letters, numbers, hyphens or underscores (up to 48 characters).
+4. Set `-SceneName` to the scene's name without `.unity`. For Hood Corner, `Gm_HoodCorner Day` is an example; other maps need their own scene name. If the name is wrong, the tool lists available scenes. Select the appropriate scene and run the command again.
 
 ~~~powershell
 .\Tools\ConvertBonelabPallet.ps1 `
-  -ArchivePath 'C:\Users\you\AppData\LocalLow\Stress Level Zero\BONELAB\MODS\Author.MapName' `
+  -ArchivePath 'C:\Downloads\hoodcorner-pc.zip' `
   -SceneName 'Gm_HoodCorner Day' `
   -Id 'bonelab-hoodcorner' `
   -CourseName 'Hood Corner DGC' `
   -PluginDirectory 'C:\Games\Disc Golf Masters\BepInEx\plugins\CustomCourseLoader'
 ~~~
+
+5. Check for the success output. The tool creates `Courses\bonelab-hoodcorner.json`, a starter card, and scene/dependency files under `Maps\bonelab-hoodcorner` in the plugin folder. Existing output is not overwritten; choose a different ID rather than overwriting an existing course.
+6. Start the game and open the offline course selector once, then open Course Studio. In **Installed maps**, use **Scan maps** and **Edit course**. Review map bounds, every hole's tee and basket, par, distance and OB; export to game, restart the game, and test the course. A generated selector card is a placeholder; the loader attempts to capture scenic imagery when the course is played.
+
+The input must contain a `catalog_*.json`, a `.pallet.json`, and the bundles referenced by the catalog. See [Marrow SDK's packing guide](https://github.com/StressLevelZero/MarrowSDK/blob/main/Docs/BuildPallet.md) for the source format.
 
 The converter reads the packed pallet's catalog and bundle files in place, then copies only the chosen scene bundle and selected dependencies into DGM's plugin data directory. BONELAB's official [pallet packing guide](https://github.com/StressLevelZero/MarrowSDK/blob/main/Docs/BuildPallet.md) documents the packed PC output and local MODS folder.
 
@@ -46,7 +54,7 @@ The tool copies only selected scene/dependency bundles. Review the source pallet
 
 The bundle and dependencies must be built for a platform and Unity runtime that the installed DGM player can load. The importer checks a UnityFS header and records the source version when it can read it. It cannot rebuild or upgrade assets, restore missing shaders, repair mod scripts, infer scene paths, or convert game-specific tee/basket formats.
 
-The four BONELAB maps currently under review have 10 selected scene/dependency bundles with Unity 2021.3.16f1 headers; the installed DGM player reports Unity 6000.3.26f1. Their bundles have been copied unchanged and do load. This is the older-bundle/newer-player direction: Unity's TypeTrees support backward-compatible deserialization across many version changes, although substantial feature changes can still produce incorrect results. The version gap is therefore a diagnostic lead, not proof that these maps require rebuilding. No Unity Editor or AssetRipper/AssetStudio/UABEA executable was found at the usual local install paths or on `PATH`, so scene reconstruction is not available in the current local toolchain. The next user-controlled runtime pass should distinguish bundle compatibility from course-specific scene data and DGM collision behavior.
+Some older Unity bundles can load in a newer player, but source shaders, lighting, scripts and collisions can still differ. A successful conversion only packages the files; it does not prove that a map will render or play correctly.
 
 Unity's [AssetBundle documentation](https://docs.unity.com/en-us/engine/6000.3/manual/assets-and-media/assets-managing-runtime/assetbundles-section/asset-bundles-intro) describes TypeTree-based backward compatibility and notes that significant feature changes can still require a rebuild. It does not support forward compatibility (a newer bundle loaded by an older player). Check the game's Unity version and test each map in DGM before sharing.
 

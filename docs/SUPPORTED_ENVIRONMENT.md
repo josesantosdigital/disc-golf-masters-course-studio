@@ -2,7 +2,7 @@
 
 ## Confirmed development baseline
 
-This baseline is specific to the development PC and is not a minimum-version or compatibility promise. Version 0.5.107 was built and installed locally; the user later reported that DGM had been open during installation. Offline courses hide tee and card artwork by default, with independent per-hole options for custom layouts. The local 711 configuration disables imported non-directional lights and hides dedicated ceiling and basement fixture renderers; base and supplemental lighting remain. The user reports that the glare improved but is not gone. Broader in-game checks remain pending.
+This baseline is specific to the development PC and is not a minimum-version or compatibility promise. Version 0.5.117 is the public experimental beta. The 0.5.116 run-up camera correction was confirmed on one imported course; the 0.5.117 OB overview alignment passed automated checks but has not been verified in game. Clean-game installation and broader in-game checks remain pending. Offline courses hide tee and card artwork by default, with independent per-hole options for custom layouts. A local 711 lighting configuration improved the reported glare but did not fully eliminate it.
 
 ## Historical baseline observations
 
@@ -22,11 +22,8 @@ The 0.5.24 Tree Land round produced user-confirmed shrub/leaf reactions and foli
 | Managed runtime reported by BepInEx | .NET 6.0.7; the plugin target remains net6.0 for this host |
 | SDK for current contributor checks | CI is configured for the supported .NET 10 SDK. The local .NET 6 SDK remains a legacy fallback for pure checks; the .NET 10 CI run has not yet been observed for this candidate |
 | Node.js used for the local editor server | 24.22.1 |
-| Current installed Course Studio DLL | 0.5.107, target framework net6.0; SHA-256 `68BEFD12A5C88A1428B59CE38F51209094886CD58A44B237E8D054B7082876CF`; user reported DGM was open during installation; broader gameplay acceptance pending |
-| Preserved rollback DLLs | 0.5.95 at `CustomCourseLoader/.tools/recovery/lighting-source-0.5.96-20261106/CustomCourseLoader.0.5.95.atomic-backup.dll`; earlier versions remain in versioned recovery folders |
-| Current source candidate | 0.5.107; Release build, fixture material checks, converter, and disposable fresh/update install checks passed. The v19 0.5.102 DRAFT does not include these changes. |
-| Most recent imported-map run | The user reported 711 storefront glare persisted on 0.5.106. That session's log confirmed suppression of 44 targeted lights and 58 particle renderers. The 0.5.107 configuration disables all imported local lights and dedicated fixture meshes; visual verification remains pending. |
-| Latest BepInEx log | `BepInEx/LogOutput.log` records a 0.5.106 711 session and predates installation of 0.5.107. |
+| Public beta | 0.5.117, target framework net6.0. Release build, coordinate, converter and disposable installer checks passed; the OB fix has not been verified in game. |
+| Earlier 711 lighting observation | Glare persisted on 0.5.106. A later local configuration improved it but did not fully eliminate it. Results vary by imported map and settings. |
 | Built-in catalog evidence | 0.5.22 startup exported 3 original courses with 11 layouts |
 | Failed map-load log | 0.5.18 |
 
@@ -41,9 +38,9 @@ The project currently documents this one verified build target. It does not clai
 ## Player requirements
 
 - Windows PC copy of Disc Golf Masters.
-- BepInEx 6 IL2CPP installed separately in the game folder. Course Studio does not bundle BepInEx, Harmony, Unity interop assemblies, or game files.
+- BepInEx 6 IL2CPP in the game folder. One-click setup uses an existing installation or downloads the pinned IL2CPP build when missing. Course Studio does not bundle BepInEx, Harmony, Unity interop assemblies, or game files.
 - A desktop browser to use the local Course Editor.
-- Node.js to start the editor's local loopback server. Node 24.22.1 was observed on the development PC; older versions are unverified.
+- Node.js to start the editor's local loopback server. One-click setup uses an existing Node.js or downloads a portable runtime when missing. Node 24.22.1 was observed on the development PC; older versions are unverified.
 - For authoring/building from source: .NET 10 SDK recommended (or .NET 6 SDK as a legacy fallback), Windows PowerShell, and a local DGM/BepInEx installation whose assemblies are used as build references. The plugin remains targeted at net6.0 to match the observed game host; using the .NET 10 SDK does not change that runtime target.
 - For imported maps: a PC Unity scene AssetBundle, its exact `.unity` scene path, dependencies, and platform/Unity serialization that the installed DGM player can load.
 

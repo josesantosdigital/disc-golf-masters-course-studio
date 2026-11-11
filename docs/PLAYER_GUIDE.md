@@ -1,109 +1,69 @@
 # Player guide
 
-## Quick setup on Windows
+Course Studio adds a **custom course loader** and a browser-based **course editor** to the Windows version of Disc Golf Masters. It is an experimental beta for offline play. The editor and loader are installed together; imported maps are separate.
 
-Close Disc Golf Masters, extract the Course Studio ZIP outside the game folder, and double-click `Setup-CourseStudio.cmd`. Setup locates the Steam installation or asks you to select it, installs the loader and editor, and creates a Course Studio desktop shortcut. If necessary it downloads the pinned Windows IL2CPP BepInEx build and a portable Node runtime from their official sites and checks their SHA-256 hashes. Internet access is required when either dependency is missing. Existing BepInEx installations and player courses are preserved. The first game launch after a new BepInEx install can take longer while it prepares game files; open the offline course selector once before starting the editor.
-
-Draft archives explicitly ask before a local test install. This quick setup has not yet been accepted on a clean real-game installation. If an incomplete BepInEx setup or conflicting files are present, setup stops rather than overwriting them.
-
-## Requirements
-
-- Windows PC installation of Disc Golf Masters.
-- BepInEx 6 IL2CPP installed for the same game installation.
-- Node.js to launch the browser editor with `Launch-Course-Editor.ps1`; quick setup installs a private portable copy if Node is missing.
-- PowerShell on Windows for the editor launcher and the included import tools.
-
-The release does not include BepInEx, game files, or map bundles. Install the **BepInEx 6 Unity IL2CPP Windows x64** build into the same game folder first, following the [official BepInEx IL2CPP installation guide](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_il2cpp.html). Course Studio does not install or update BepInEx. This project has been verified with BepInEx `6.0.0-be.791` on DGM build `26127348`; other versions/builds are not yet verified. See [supported environment](SUPPORTED_ENVIRONMENT.md).
-
-## Install the plugin
+## 1. Install or update Course Studio
 
 1. Close Disc Golf Masters.
-2. Extract the release archive to a folder outside the game installation.
-3. Open PowerShell in that extracted folder and run the included installer, replacing the example path with your game folder:
+2. Open [GitHub Releases](https://github.com/josesantosdigital/disc-golf-masters-course-studio/releases) and download the newest `DiscGolfMasters-CourseStudio-Setup-…-BETA.exe` asset. Run it. The installer is unsigned.
+3. Setup looks for the Steam installation. If asked, select the **game's folder**: the folder containing `Disc Golf Masters.exe`, not the `steamapps` folder. To find it in Steam, right-click Disc Golf Masters in your library, choose **Manage → Browse local files**, and copy the folder location.
+4. When setup finishes, start the game and open the **offline course selector** once. This lets the loader prepare built-in course information and previews. The first launch after a fresh BepInEx installation may take longer.
+5. Use the **Disc Golf Course Studio** shortcut on your desktop to open the editor.
+
+Setup installs the loader and editor, uses an existing BepInEx installation where possible, and downloads the pinned BepInEx 6 IL2CPP and Node.js from their official sources when needed; downloads are checksum-verified. Internet is needed if a dependency is missing. If it finds an incomplete BepInEx installation or conflicting files, it stops and reports the problem. Existing courses, maps, generated previews and personal-best data are preserved on update. Close the game before updating.
+
+The release ZIP is an alternative for manual or advanced use. Extract it outside the game folder and run `Setup-CourseStudio.cmd`; this uses the same setup. The lower-level `Install-CourseStudio.ps1` requires BepInEx 6 IL2CPP to be installed already. The release does not contain the game, BepInEx, or imported map bundles. See the [supported environment](SUPPORTED_ENVIRONMENT.md) for tested versions and limits.
+
+## 2. Install a separate course or map package
+
+First install Course Studio as above. A Course Studio course package is a ZIP containing `Install-CourseModPackage.ps1`, `manifest.json`, `Payload` and a README. It is different from a raw BONELAB map ZIP; use the [conversion guide](PORTING_GUIDE.md#convert-a-bonelab-pc-map) for that.
+
+1. Close the game and extract the course ZIP to its own folder.
+2. In that extracted folder, open PowerShell or Windows Terminal. Run the following, replacing the example with the folder containing **your** `Disc Golf Masters.exe`:
 
    ~~~powershell
-   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Install-CourseStudio.ps1 -GameRoot 'C:\Games\Disc Golf Masters'
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Install-CourseModPackage.ps1 -GameRoot 'C:\Games\Disc Golf Masters'
    ~~~
 
-4. Start the game and open the offline course selector once. The loader exports built-in course metadata and map previews for Course Studio.
+3. Read the output for errors. Start the game and choose the course in the **offline course selector**. If Course Studio was already open, select **Installed maps → Scan maps** to refresh its list.
 
-The installer checks for BepInEx 6 IL2CPP and copies the plugin/editor files. On updates it preserves existing `Courses`, `Maps`, `CourseEditor/catalog.js`, `CourseEditor/assets/maps`, and custom personal-best data. It adds the bundled sample course only if that filename does not already exist. A local DRAFT archive requires adding `-AllowDraft` to the command; a BETA archive is separately marked experimental and does not require that switch.
+The package installer verifies the package, paths and hashes. It refuses existing files by default; `-Overwrite` explicitly permits replacement, subject to shared-file checks. Back up your courses and maps first if replacing anything. Read the package README for its required loader version and any additional instructions. A layout-only package may require the recipient to obtain and convert the source map separately; follow its README and ensure the bundle paths match.
 
-The plugin reads custom course definitions from:
+To install files manually, the plugin folder is `<game folder>\BepInEx\plugins\CustomCourseLoader`. Put the course JSON and referenced card/preview images directly in its `Courses` folder. Put scene and dependency bundles at the exact relative paths given in the JSON's `mapScene`, normally under `Maps`. Preserve all folder names; merely placing the original source ZIP in `Maps` does not convert it. Restart the game.
 
-~~~text
-BepInEx/plugins/CustomCourseLoader/Courses
-~~~
+## 3. Open the editor and make a course
 
-Imported map bundles live under:
+Open the **Disc Golf Course Studio** desktop shortcut. It starts a local server on `127.0.0.1` using an available port and opens a browser. Use the URL opened by the shortcut: the port can change each time. The server reads and writes your selected local game installation; it does not publish courses online. If you installed manually, run `CourseEditor\Launch-Course-Editor.ps1` from the plugin folder.
 
-~~~text
-BepInEx/plugins/CustomCourseLoader/Maps/<course-id>
-~~~
+1. Choose **Original courses** to make a layout on a built-in map, or **Installed maps** to use a converted or installed map. If a map was added while the editor was open, use **Scan maps**.
+2. Select **Edit course** to modify an installed layout or **New layout** to make a separate variation. Give it a distinctive course name and ID. Reusing an ID on export replaces that course's JSON and generated cards.
+3. Select each hole and drag its tee and basket markers. Set their positions and height in the inspector, along with par, distance, and shot limit. A shot limit of `0` means no limit. Review every hole, particularly automatically planned holes.
+4. To draw OB, open **OB limits**, choose **Draw OB zone**, click at least three boundary points on the map and choose **Finish zone**. In version 0.5.117, generated imported-map overviews account for the capture's world bounds. For older drawings, if **Align earlier OB zones to preview** appears, use it only if the zones should remain where you originally drew them; it adjusts zones on all holes. Review the results and export again. Custom screenshots without known world bounds may still need calibration. Test OB in game.
+5. The tee and hole card can be turned on per hole in their inspector panels; they default to off. Hiding basket art retains the scoring trigger. For imported maps, **Map settings** includes bounds and optional rendering/lighting controls.
+6. Select **Export to game** and look for the success message. Restart the game, open the offline course selector and select your custom card. A browser-local draft is not a substitute for exporting to the game; export or back up your course before changing browsers or clearing browser data.
 
-## Launch Course Studio
+**READY TO EDIT** in Installed maps means the scene path, scene bundle and listed dependencies exist; it does not establish in-game compatibility or correct hole placement. **AUTHORING CHECK** calls out settings that need review. Use **Delete map** only when you intend to remove its course and unshared map assets; back them up first. Shared assets referenced by other courses are kept.
 
-Run `BepInEx/plugins/CustomCourseLoader/CourseEditor/Launch-Course-Editor.ps1`. It starts a local server bound to `127.0.0.1`, selects an available port, waits for the page to respond, and then opens the editor in your browser. If the browser does not open automatically, the launcher prints the working local address. The server serves the editor and writes course files into this plugin folder; it does not upload course data to a remote service.
+### If export asks for a folder
 
-Choose **Original courses** to start from one of the game's built-in courses. Choose **Installed maps** to browse imported course packages in `Courses` and Unity scene bundles in `Maps`. The explorer also keeps packages with missing paths visible so you can open their JSON and repair the setup. Search by map, course ID, scene, or bundle path; use the status filter to narrow the list to ready maps, setup-needed packages, or missing files. Select **Scan maps** after adding bundles while Course Studio is open. Use **Edit course** to change a saved layout or **New layout** to create a variation.
+The local editor normally installs directly. If it instead opens a folder picker, choose `<game folder>\BepInEx\plugins\CustomCourseLoader`, not the game root. The editor creates `Courses` and needed `Maps` paths beneath it. If it downloads individual files instead, place them as described in section 2. Check for the final success message and restart the game.
 
-**READY TO EDIT** means the scene bundle, scene path, and listed dependencies are present. The separate amber **AUTHORING CHECK** calls out default overview bounds and holes whose tee/basket positions are missing or planned automatically. Calibrate the bounds and review every placement before treating a map as a finished course.
+## 4. Convert a map
 
-The Original courses tab lists built-in courses exported by the installed DGM build. Launch the game and open its offline course selector once if the list has not been generated yet. The Installed maps tab browses imported map packages in the plugin folder. The overview map is zoomable and pannable. In the editor, drag tee and basket markers, then use the inspector to set exact X/Y/Z positions (including height) and yaw. Use the hole settings to edit par, distance, and shot limit. Use the OB tab to draw boundary polygons. Use the Card tab to customize the card displayed by the tee.
+The included tools can package a compatible **BONELAB PC pallet ZIP or folder**, or an already-extracted compatible Unity scene bundle. Follow the [step-by-step BONELAB conversion guide](PORTING_GUIDE.md#convert-a-bonelab-pc-map). Conversion requires PowerShell and the tools in the extracted Course Studio release ZIP or a source checkout; it is not a one-click conversion in the editor.
 
-## Export and load a course
+The converter copies selected scene/dependency bundles and creates a **starter** course. It does not extract BONELAB hole layouts or rebuild shaders, scripts, lighting or physics. Review and position the holes, tee/basket heights, bounds and OB in Course Studio, then test them in an offline round. Not every Unity map is compatible.
 
-1. Select **Export to game** in Course Studio.
-2. When the local launcher/server is active, the editor installs course JSON, card PNGs, and selected bundle files into the plugin folder.
-3. Restart Disc Golf Masters to load the updated course registry.
-4. Open the offline course selector and choose the custom course card.
+If you already have a compatible Unity scene bundle and know its internal `.unity` scene path, **Installed maps → Add map package…** opens a draft where you can select the scene bundle, enter its scene path and add dependency bundles under **Map settings**. Set a unique ID, preview and world bounds, review each hole, then export. This editor action does not unpack or convert a BONELAB ZIP.
 
-If direct install is unavailable, the editor offers a folder picker or downloads the files. In the folder picker, choose the `BepInEx/plugins/CustomCourseLoader` folder; the editor creates or updates `Courses` and the required `Maps` paths beneath it. If the browser only downloads files, move the course JSON and PNGs into `Courses` and imported scene bundles into the paths named in `mapScene`. Then restart the game.
+## 5. Share a course
 
-Exporting a course with an existing ID replaces that course JSON and its generated card files. Choose a new ID to keep the previous course as a separate entry. Back up `Courses` and `Maps` before bulk changes.
+Built-in-course layouts need their JSON and referenced images; recipients need the loader and corresponding built-in course. Imported courses additionally reference map bundles. Share imported assets only when the creator and applicable terms permit it; otherwise share the source page and instructions so recipients can obtain and convert the map themselves. A source link is not the map itself.
 
-## Share a course
+Authors can create a versioned course ZIP with [New-CourseModPackage.ps1](../Tools/README.md#share-a-course-as-a-separate-zip). An imported-map package requires explicit asset inclusion and a recorded permission reference. The source reference is not itself proof of redistribution permission. Include the required Course Studio version, course ID, map source, and any known issues in your post.
 
-For a custom layout on an original DGM course, share the course JSON and every course or hole-card image it references. The recipient needs Course Studio and the same built-in course, but no copy of DGM's map assets.
+## Backup and uninstall
 
-For an imported map, the course JSON points to a scene bundle and any dependency bundles under `Maps`. Share those files only when the source author and applicable terms allow redistribution. Otherwise, share the source mod page, the scene name and path, and the course JSON separately. Each recipient must obtain their own compatible PC map files, convert or install them locally, and ensure the bundle paths in the JSON match their files. A source link by itself does not supply the scene bundle or grant redistribution rights.
+Close the game, then back up `<game folder>\BepInEx\plugins\CustomCourseLoader\Courses` and `Maps`. Custom-course personal bests are stored in `BepInEx\config\CustomCourseLoader.personal-bests.json`; back that up too if needed. To uninstall the loader/editor, remove the `BepInEx\plugins\CustomCourseLoader` folder after making backups. Remove BepInEx only if no other mod needs it.
 
-To package one course as its own ZIP, use `Tools/New-CourseModPackage.ps1` from a source checkout. It gathers that course's JSON, referenced card images, and (only when explicitly enabled) the imported scene and dependencies. Each course ZIP is independent, so authors can publish a loader/editor package and course packages separately. Recipients extract the ZIP and run its `Install-CourseModPackage.ps1` after installing Course Studio. Imported bundles should be included only with redistribution permission; the package's permission/source field is an author record, not proof of a license.
-
-Before posting, use a unique course ID and validate the package with `Tools/ValidateCoursePackage.ps1` when the tools are available. For a Discord post, include the course name and ID, base map or source page, hole count, required Course Studio version, and whether imported bundles may be redistributed. The BONELAB source links retained for Discord sharing are in the [porting guide](PORTING_GUIDE.md#bonelab-map-source-references).
-
-~~~text
-Course:
-Course ID:
-Base map / source page:
-Holes / par:
-Required Course Studio version:
-Imported bundles: included with permission / obtain from source page
-Notes:
-~~~
-
-## Uninstall
-
-1. Close Disc Golf Masters.
-2. Copy `BepInEx/plugins/CustomCourseLoader/Courses` and `Maps` somewhere safe if you want to keep your courses. Also back up `BepInEx/config/CustomCourseLoader.personal-bests.json` if you want to keep custom-course personal bests.
-3. Remove the `BepInEx/plugins/CustomCourseLoader` folder to uninstall the plugin and editor. Keep or remove the backed-up course data independently.
-4. Remove BepInEx only if no other installed mod depends on it.
-
-## Course editing notes
-
-- A shot limit of `0` means no limit. A positive limit is the maximum throws before the round advances from that hole.
-- Removing tee or basket art hides the visible object. The basket's scoring trigger remains available to the game.
-- Original-course offsets use local right/up/forward meters relative to the built-in tee. Imported-map positions use absolute Unity world X/Y/Z meters.
-- Imported map X/Z bounds set the editor preview, automatic hole-sampling area, and fallback in-bounds play rectangle. The play rectangle extends 10–40 m beyond the configured bounds. Keep the bounds around playable ground: broad city bounds can place automatic holes in empty grass, while tight bounds can mark nearby fairway throws OB. `groundY` guides default marker snapping and automatic ground selection. Bounds do not rescale the Unity scene.
-- **Map settings → Advanced lighting** includes optional realtime shadows and a switch to hide imported particle effects. The nested **Terrain & vegetation** group offers a lit foliage cutout shader, lightmap preservation, terrain material repair, textured terrain-detail repair, and distant tree meshes. These are per-map rendering fixes; they can change appearance and performance, so check each result in game. Hiding particles removes those effects entirely.
-- A map preview image is for editing. When you play a custom course, the loader attempts to capture a scenic selector image; until then, it shows the course card image. Per-hole cards are shown near tees. Captures are stored separately in `BepInEx/config/CustomCourseLoader/Previews` and do not overwrite your cards.
-- Custom-course personal bests are stored separately in `BepInEx/config/CustomCourseLoader.personal-bests.json`, keyed by layout ID. A record is written only after every hole in the round has a score; values are relative to par and a lower value replaces a higher one. This does not change DGM's built-in course progression. Older custom-course results in the game's PlayerStats data are not imported automatically.
-- Course tools currently target offline rounds.
-
-## Create a custom map
-
-Use **Add map package…** in the Installed maps view to create a course on a Unity scene bundle. Enter the scene's `.unity` asset path and its bundle path under `Maps`. Add required dependency bundles, provide a top-down screenshot, then set world bounds around playable ground and place every tee and basket. Bounds also control automatic hole sampling and the fallback in-bounds play area, so exclude empty outskirts without cutting playable fairways out of bounds.
-
-If a source game exports its hole data, the included `Tools/ConvertCourseLayoutJson.ps1` can convert it after mapping the fields to `Tools/Schemas/course-layout-interchange.schema.json`. For an imported map, reference the already-installed scene bundle and use `coordinateSpace: "unityWorld"`. Without source layout data, place the holes in Course Studio.
-
-For bundle extraction, see the [porting guide](PORTING_GUIDE.md). Use the [troubleshooting guide](TROUBLESHOOTING.md) if the editor, course card, or imported scene does not appear.
+For common problems, see [troubleshooting](TROUBLESHOOTING.md). When reporting an issue, include the loader version, steps, course/map name and relevant log lines; remove private paths before sharing logs.
