@@ -62,6 +62,16 @@ Built-in-course layouts need their JSON and referenced images; recipients need t
 
 Authors can create a versioned course ZIP with [New-CourseModPackage.ps1](../Tools/README.md#share-a-course-as-a-separate-zip). An imported-map package requires explicit asset inclusion and a recorded permission reference. The source reference is not itself proof of redistribution permission. Include the required Course Studio version, course ID, map source, and any known issues in your post.
 
+## Disable or re-enable Course Studio
+
+1. Close Disc Golf Masters.
+2. Download `CourseStudio-ModToggle-1.0.0.zip` from the [0.5.117 Beta release](https://github.com/josesantosdigital/disc-golf-masters-course-studio/releases/tag/v0.5.117-beta) and extract it.
+3. Double-click `Toggle-CourseStudio.cmd`. If prompted, choose the folder containing `Disc Golf Masters.exe`. The window shows the current status: choose **Yes** to disable, **No** to enable, or **Cancel** to leave it unchanged. Start the game again after the success message.
+
+This switches the Course Studio loader DLL and any same-named loader backup DLLs within its plugin folder. It retains your courses, maps and editor files and does not change the separate Aim Elevation mod or other BepInEx mods. The editor can still open while the loader is disabled, but custom courses do not load in-game. Re-running the main Course Studio installer while disabled can create a conflict; the toggle will stop rather than overwrite either copy.
+
+For a manual disable, close the game, open `<game folder>\BepInEx\plugins\CustomCourseLoader`, and rename `CustomCourseLoader.dll` to `CustomCourseLoader.dll.disabled`. Also check nested folders for older `CustomCourseLoader*.dll` copies: BepInEx may load one of those if left enabled. Rename each matching DLL by appending `.disabled`, and note precisely which files you changed. Reverse those names to re-enable. Do not rename other plugins or previously disabled files. The toggle automates this bookkeeping and checks for conflicts.
+
 ## Backup and uninstall
 
 Close the game, then back up `<game folder>\BepInEx\plugins\CustomCourseLoader\Courses` and `Maps`. Custom-course personal bests are stored in `BepInEx\config\CustomCourseLoader.personal-bests.json`; back that up too if needed. To uninstall the loader/editor, remove the `BepInEx\plugins\CustomCourseLoader` folder after making backups. Remove BepInEx only if no other mod needs it.

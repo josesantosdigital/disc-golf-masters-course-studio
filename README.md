@@ -10,6 +10,8 @@ Course Studio is a local course editor and custom course loader for offline roun
 
 Follow the [player guide](docs/PLAYER_GUIDE.md) for step-by-step setup, map installation, editing, exporting, updates, and troubleshooting. For converting a BONELAB PC map, see the [conversion guide](docs/PORTING_GUIDE.md#convert-a-bonelab-pc-map). The installer and loader do not include imported maps; obtain them separately.
 
+To temporarily switch the loader off or back on without removing your maps, download `CourseStudio-ModToggle-1.0.0.zip` from the [0.5.117 Beta release](https://github.com/josesantosdigital/disc-golf-masters-course-studio/releases/tag/v0.5.117-beta) and follow the [toggle instructions](docs/PLAYER_GUIDE.md#disable-or-re-enable-course-studio).
+
 ## Get started
 
 - Players: [installation, editing, and course-sharing guide](docs/PLAYER_GUIDE.md)
