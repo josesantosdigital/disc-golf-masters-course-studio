@@ -63,6 +63,15 @@ try {
     Assert (Test-Path (Join-Path $game 'BepInEx')) 'Existing legacy backup not restored'
     Assert (Test-Path (Join-Path $game 'winhttp.dll')) 'Existing legacy hook not restored'
     Assert ((Get-Content (Join-Path $game 'changelog.txt') -Raw) -eq 'unrelated game file') 'Unrelated file overwritten'
+    Assert (Test-Path (Join-Path $legacyBackup 'RESTORE-INSTRUCTIONS.txt')) 'Legacy instructions unexpectedly removed'
+    Run $script 'Status' $true
+    Run $script 'Disable' $true
+    Assert (Test-Path (Join-Path $backup 'BepInEx')) 'Stale legacy instructions blocked a later disable'
+    Run $script 'Enable' $true
+    Assert (Test-Path (Join-Path $game 'BepInEx')) 'Repeat cycle after legacy restoration failed'
+    [IO.File]::WriteAllText((Join-Path $legacyBackup 'doorstop_config.ini'),'partial backup')
+    Run $script 'Status' $false
+    Assert (Test-Path (Join-Path $legacyBackup 'doorstop_config.ini')) 'Partial legacy backup was altered'
     Write-Output 'Clean toggle fixtures passed: repeat cycles, data preservation, old toggle and existing backup recovery, and conflict refusal.'
 } finally {
     if ($server -and -not $server.HasExited) { Stop-Process -Id $server.Id -ErrorAction SilentlyContinue }

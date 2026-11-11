@@ -57,7 +57,11 @@ function Invoke-Toggle([string]$Root, [string]$Mode) {
     if ((Split-Path -Leaf $parent) -ieq 'common' -and (Split-Path -Leaf $grandparent) -ieq 'steamapps') {
         $candidate = Join-Path $grandparent 'Disc Golf Masters Mod Backup Safe'
         $instructions = Join-Path $candidate 'RESTORE-INSTRUCTIONS.txt'
-        if ((Test-Path -LiteralPath $instructions -PathType Leaf) -and (Get-Content -LiteralPath $instructions -Raw) -match '^Restorable BepInEx files for Disc Golf Masters\.') { $legacy = $candidate }
+        if ((Test-Path -LiteralPath $instructions -PathType Leaf) -and (Get-Content -LiteralPath $instructions -Raw) -match '^Restorable BepInEx files for Disc Golf Masters\.') {
+            $legacyEntries = @('BepInEx','doorstop_config.ini','.doorstop_version','changelog.txt','winhttp.dll','winhttp.dll.course-studio-disabled')
+            $remaining = @($legacyEntries | Where-Object { Test-Path -LiteralPath (Join-Path $candidate $_) })
+            if ($remaining.Count) { $legacy = $candidate }
+        }
     }
     $saved = if (Test-Path -LiteralPath $backup) { $backup } elseif ($legacy) { $legacy } else { $null }
     $installed = Test-Path -LiteralPath (Join-Path $game 'BepInEx') -PathType Container

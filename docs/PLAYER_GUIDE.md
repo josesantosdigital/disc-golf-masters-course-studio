@@ -65,7 +65,7 @@ Authors can create a versioned course ZIP with [New-CourseModPackage.ps1](../Too
 ## Disable or re-enable mods
 
 1. Close Disc Golf Masters.
-2. Download `CourseStudio-ModToggle-3.0.0.zip` from the [0.5.117 Beta release](https://github.com/josesantosdigital/disc-golf-masters-course-studio/releases/tag/v0.5.117-beta) and extract it.
+2. Download `CourseStudio-ModToggle-3.0.1.zip` from the [0.5.117 Beta release](https://github.com/josesantosdigital/disc-golf-masters-course-studio/releases/tag/v0.5.117-beta) and extract it.
 3. Double-click `Toggle-CleanMods.cmd`. If prompted, choose the folder containing `Disc Golf Masters.exe`. The window shows the current status: choose **Yes** to disable all BepInEx mods, **No** to restore and re-enable them, or **Cancel** to leave it unchanged. Start the game again after the success message.
 
 The tool moves BepInEx and its recognised Doorstop loader files out of the game folder into a same-drive backup beside it. This includes all BepInEx plugins, the course loader, Aim Elevation, maps, courses and settings. Save your editor work first: disabling stops Course Studio's local editor server. On re-enable, the tool moves the files back, restores the startup hook, and reverses recorded changes from the previous 1.0.0 toggle if present. Mods independently disabled by other means remain disabled. An earlier backup named `Disc Golf Masters Mod Backup Safe` in the Steam library's `steamapps` folder is also recognised.
